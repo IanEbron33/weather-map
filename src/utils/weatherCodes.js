@@ -1,0 +1,78 @@
+// ===== WMO Weather Code Mapping =====
+export const WMO_CODES = {
+  0:  { desc: 'Clear sky',              icon: '☀️', night: '🌙', type: 'sun' },
+  1:  { desc: 'Mainly clear',           icon: '🌤️', night: '🌙', type: 'sun' },
+  2:  { desc: 'Partly cloudy',          icon: '⛅',  night: '☁️', type: 'cloud' },
+  3:  { desc: 'Overcast',               icon: '☁️',  night: '☁️', type: 'cloud' },
+  45: { desc: 'Foggy',                  icon: '🌫️', night: '🌫️', type: 'cloud' },
+  48: { desc: 'Rime fog',               icon: '🌫️', night: '🌫️', type: 'cloud' },
+  51: { desc: 'Light drizzle',          icon: '🌦️', night: '🌧️', type: 'rain' },
+  53: { desc: 'Moderate drizzle',       icon: '🌦️', night: '🌧️', type: 'rain' },
+  55: { desc: 'Dense drizzle',          icon: '🌧️', night: '🌧️', type: 'rain' },
+  56: { desc: 'Freezing drizzle',       icon: '🌧️', night: '🌧️', type: 'rain' },
+  57: { desc: 'Dense freezing drizzle', icon: '🌧️', night: '🌧️', type: 'rain' },
+  61: { desc: 'Slight rain',            icon: '🌦️', night: '🌧️', type: 'rain' },
+  63: { desc: 'Moderate rain',          icon: '🌧️', night: '🌧️', type: 'rain' },
+  65: { desc: 'Heavy rain',             icon: '🌧️', night: '🌧️', type: 'rain' },
+  66: { desc: 'Light freezing rain',    icon: '🌧️', night: '🌧️', type: 'rain' },
+  67: { desc: 'Heavy freezing rain',    icon: '🌧️', night: '🌧️', type: 'rain' },
+  71: { desc: 'Slight snowfall',        icon: '🌨️', night: '🌨️', type: 'snow' },
+  73: { desc: 'Moderate snowfall',      icon: '🌨️', night: '🌨️', type: 'snow' },
+  75: { desc: 'Heavy snowfall',         icon: '❄️',  night: '❄️', type: 'snow' },
+  77: { desc: 'Snow grains',            icon: '❄️',  night: '❄️', type: 'snow' },
+  80: { desc: 'Slight rain showers',    icon: '🌦️', night: '🌧️', type: 'rain' },
+  81: { desc: 'Moderate rain showers',  icon: '🌧️', night: '🌧️', type: 'rain' },
+  82: { desc: 'Violent rain showers',   icon: '⛈️', night: '⛈️', type: 'storm' },
+  85: { desc: 'Slight snow showers',    icon: '🌨️', night: '🌨️', type: 'snow' },
+  86: { desc: 'Heavy snow showers',     icon: '❄️',  night: '❄️', type: 'snow' },
+  95: { desc: 'Thunderstorm',           icon: '⛈️', night: '⛈️', type: 'storm' },
+  96: { desc: 'Thunderstorm with hail', icon: '⛈️', night: '⛈️', type: 'storm' },
+  99: { desc: 'Severe thunderstorm',    icon: '⛈️', night: '⛈️', type: 'storm' },
+};
+
+export function getWeatherInfo(code, isDay) {
+  const info = WMO_CODES[code] || { desc: 'Unknown', icon: '🌡️', night: '🌡️', type: 'cloud' };
+  return { desc: info.desc, icon: isDay ? info.icon : info.night, type: info.type };
+}
+
+// ===== AQI Levels =====
+export function getAqiInfo(aqi) {
+  if (aqi <= 50)  return { label: 'Good',                   desc: 'Air quality is satisfactory',      cls: 'aqi-good' };
+  if (aqi <= 100) return { label: 'Moderate',               desc: 'Acceptable for most people',       cls: 'aqi-moderate' };
+  if (aqi <= 150) return { label: 'Unhealthy for Sensitive', desc: 'Sensitive groups may be affected', cls: 'aqi-unhealthy-sg' };
+  if (aqi <= 200) return { label: 'Unhealthy',              desc: 'Everyone may begin to feel effects', cls: 'aqi-unhealthy' };
+  if (aqi <= 300) return { label: 'Very Unhealthy',         desc: 'Health alert: serious effects',    cls: 'aqi-very-unhealthy' };
+  return { label: 'Hazardous', desc: 'Emergency conditions', cls: 'aqi-hazardous' };
+}
+
+// ===== Simple Temperature Color (for Leaflet popups etc.) =====
+export function getTempColor(val, unit) {
+  const tempC = unit === 'fahrenheit' ? (val - 32) * 5 / 9 : val;
+  if (tempC <= 0)  return '#60a5fa';
+  if (tempC <= 10) return '#38bdf8';
+  if (tempC <= 18) return '#4ade80';
+  if (tempC <= 26) return '#facc15';
+  if (tempC <= 33) return '#fb923c';
+  return '#f87171';
+}
+
+// ===== Temperature Gradient Style =====
+export function getTempStyle(val, unit) {
+  const tempC = unit === 'fahrenheit' ? (val - 32) * 5 / 9 : val;
+  let grad;
+  if (tempC <= 0)       grad = 'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)';
+  else if (tempC <= 10) grad = 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)';
+  else if (tempC <= 18) grad = 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)';
+  else if (tempC <= 26) grad = 'linear-gradient(135deg, #facc15 0%, #ca8a04 100%)';
+  else if (tempC <= 33) grad = 'linear-gradient(135deg, #fb923c 0%, #ea580c 100%)';
+  else                  grad = 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)';
+
+  return {
+    background: grad,
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    color: 'transparent',
+    display: 'inline-block',
+  };
+}

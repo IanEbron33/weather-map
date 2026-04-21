@@ -6,21 +6,45 @@ export default function WeatherCard({
   weatherData, currentLocation, tempUnit, windUnit,
   isFavorite, onToggleFavorite, onShareLocation,
 }) {
+  // ALL hooks must be called unconditionally before any early return
+  const unitSym = tempUnit === 'celsius' ? '°C' : '°F';
+  const wUnit = windUnit === 'kmh' ? 'km/h' : 'mph';
+
+  const w = useMemo(
+    () => weatherData ? getWeatherInfo(weatherData.current.weather_code, weatherData.current.is_day) : null,
+    [weatherData]
+  );
+  const tempColor = useMemo(
+    () => weatherData ? getTempColor(weatherData.current.temperature_2m, tempUnit) : null,
+    [weatherData, tempUnit]
+  );
+  const sunrise = useMemo(() => {
+    if (!weatherData?.daily?.sunrise?.[0]) return '--:--';
+    return new Date(weatherData.daily.sunrise[0]).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }, [weatherData]);
+  const sunset = useMemo(() => {
+    if (!weatherData?.daily?.sunset?.[0]) return '--:--';
+    return new Date(weatherData.daily.sunset[0]).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }, [weatherData]);
+  
+  const currentVisibility = useMemo(() => {
+  if (!weatherData) return null;
+  const hourly = weatherData.hourly;
+  const now = new Date();
+  let idx = 0;
+  for (let i = 0; i < hourly.time.length; i++) {
+    if (new Date(hourly.time[i]) >= now) { idx = i; break; }
+  }
+  const vis = hourly.visibility?.[idx];
+  if (vis == null) return '—';
+  // API returns metres; convert to km
+  return `${(vis / 1000).toFixed(1)} km`;
+}, [weatherData]);
+
+  // Early return is now AFTER all hooks
   if (!weatherData) return null;
 
   const c = weatherData.current;
-  const d = weatherData.daily;
-  const unitSym = tempUnit === 'celsius' ? '°C' : '°F';
-  const wUnit = windUnit === 'kmh' ? 'km/h' : 'mph';
-  const w = getWeatherInfo(c.weather_code, c.is_day);
-  const tempColor = useMemo(() => getTempColor(c.temperature_2m, tempUnit), [c.temperature_2m, tempUnit]);
-
-  const sunrise = d.sunrise?.[0]
-    ? new Date(d.sunrise[0]).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-    : '--:--';
-  const sunset = d.sunset?.[0]
-    ? new Date(d.sunset[0]).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-    : '--:--';
 
   return (
     <div
@@ -30,19 +54,15 @@ export default function WeatherCard({
         animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* Animated weather background */}
       <WeatherAnimation code={c.weather_code} isDay={c.is_day} />
 
-      {/* Content */}
       <div className="relative z-[1] p-6 max-md:p-4">
-        {/* Header */}
         <div className="flex justify-between items-start mb-2">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-bold tracking-tight max-md:text-lg">
                 {currentLocation.city || '—'}
               </h2>
-              {/* Favorite button */}
               <button
                 onClick={onToggleFavorite}
                 className="w-7 h-7 flex items-center justify-center rounded-md flex-shrink-0 transition-all max-md:w-9 max-md:h-9"
@@ -53,7 +73,6 @@ export default function WeatherCard({
                   <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
                 </svg>
               </button>
-              {/* Share button */}
               <button
                 onClick={onShareLocation}
                 className="w-7 h-7 flex items-center justify-center rounded-md flex-shrink-0 transition-all max-md:w-9 max-md:h-9"
@@ -84,7 +103,6 @@ export default function WeatherCard({
           </div>
         </div>
 
-        {/* Temperature */}
         <div className="flex items-baseline gap-3 mb-5">
           <span className="text-5xl font-extrabold tracking-tight max-md:text-[42px]" style={{ color: tempColor }}>
             {Math.round(c.temperature_2m)}{unitSym}
@@ -94,13 +112,12 @@ export default function WeatherCard({
           </span>
         </div>
 
-        {/* Details grid */}
         <div className="grid grid-cols-2 gap-3 max-md:gap-2">
           {[
             { label: '💧 Humidity', value: `${c.relative_humidity_2m}%` },
             { label: '💨 Wind', value: `${c.wind_speed_10m} ${wUnit}` },
             { label: '🌡️ Pressure', value: `${Math.round(c.surface_pressure)} hPa` },
-            { label: '👁️ Visibility', value: '—' },
+            { label: '👁️ Visibility', value: currentVisibility ?? '—' },
             { label: '🌅 Sunrise', value: sunrise },
             { label: '🌇 Sunset', value: sunset },
           ].map((d) => (

@@ -12,7 +12,8 @@ export default function Favorites({ favorites, onSelectLocation, onRemoveFavorit
       <div className="flex flex-wrap gap-1.5">
         {favorites.map((f, i) => (
           <div
-            key={`${f.name}-${i}`}
+            // FIX: use lat/lon as key — stable even if city names collide or list reorders
+            key={`${f.lat.toFixed(4)}-${f.lon.toFixed(4)}`}
             onClick={() => onSelectLocation(f.lat, f.lon)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer whitespace-nowrap transition-all"
             style={{

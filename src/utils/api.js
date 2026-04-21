@@ -5,7 +5,7 @@ export async function fetchWeatherData(lat, lon, tempUnit, windUnit) {
     latitude: lat,
     longitude: lon,
     current: 'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure,is_day',
-    hourly: 'temperature_2m,precipitation_probability,weather_code,is_day',
+    hourly: 'temperature_2m,precipitation_probability,weather_code,is_day,visibility',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset',
     temperature_unit: tempUnit,
     wind_speed_unit: windUnit,
@@ -39,17 +39,40 @@ export async function searchCities(query) {
   return data.results || [];
 }
 
+// In-memory cache: key = "lat,lon" rounded to 2dp, value = city name string
+// Nominatim's policy asks for max 1 req/sec and encourages caching.
+// Rounding to 2dp (~1.1km precision) means nearby clicks reuse the same result.
+const geocodeCache = new Map();
+
 export async function reverseGeocode(lat, lon) {
+  const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+
+  if (geocodeCache.has(key)) {
+    return geocodeCache.get(key);
+  }
+
   try {
     const resp = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`
     );
     if (!resp.ok) return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
     const data = await resp.json();
-    const city = data.address.city || data.address.town || data.address.village || data.address.county || data.address.state || '';
-    const country = data.address.country_code ? data.address.country_code.toUpperCase() : '';
-    if (city) return country ? `${city}, ${country}` : city;
-    return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+    const city =
+      data.address.city ||
+      data.address.town ||
+      data.address.village ||
+      data.address.county ||
+      data.address.state ||
+      '';
+    const country = data.address.country_code
+      ? data.address.country_code.toUpperCase()
+      : '';
+    const result = city
+      ? country ? `${city}, ${country}` : city
+      : `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+
+    geocodeCache.set(key, result);
+    return result;
   } catch {
     return `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
   }

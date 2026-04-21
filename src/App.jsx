@@ -7,7 +7,6 @@ import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeoc
 import { isMobile } from './utils/helpers';
 
 export default function App() {
-  // ===== State =====
   const [theme, setThemeState] = useState(() => localStorage.getItem('ws_theme') || 'dark');
   const [tempUnit, setTempUnitState] = useState(() => localStorage.getItem('ws_temp') || 'celsius');
   const [windUnit, setWindUnitState] = useState(() => localStorage.getItem('ws_wind') || 'kmh');
@@ -28,7 +27,12 @@ export default function App() {
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
 
-  // ===== Theme class on <html> =====
+  // Store latest unit values in refs so callbacks don't go stale
+  const tempUnitRef = useRef(tempUnit);
+  const windUnitRef = useRef(windUnit);
+  useEffect(() => { tempUnitRef.current = tempUnit; }, [tempUnit]);
+  useEffect(() => { windUnitRef.current = windUnit; }, [windUnit]);
+
   useEffect(() => {
     if (theme === 'light') {
       document.documentElement.classList.add('light-mode');
@@ -37,21 +41,21 @@ export default function App() {
     }
   }, [theme]);
 
-  // ===== Toast helper =====
   const showToast = useCallback((msg, isError = false, type = '') => {
     setToast({ msg, isError, type, id: Date.now() });
     setTimeout(() => setToast(null), 3800);
   }, []);
 
-  // ===== Fetch weather =====
-  const handleFetchWeather = useCallback(async (lat, lon, unit = tempUnit, wUnit = windUnit) => {
+  const handleFetchWeather = useCallback(async (lat, lon, unit, wUnit) => {
+    // Always fall back to the latest unit from refs if not explicitly passed
+    const resolvedUnit = unit ?? tempUnitRef.current;
+    const resolvedWUnit = wUnit ?? windUnitRef.current;
     try {
       const [weather, aqi] = await Promise.all([
-        fetchWeatherData(lat, lon, unit, wUnit),
+        fetchWeatherData(lat, lon, resolvedUnit, resolvedWUnit),
         fetchAirQualityData(lat, lon),
       ]);
       const cityName = await reverseGeocode(lat, lon);
-
       setWeatherData(weather);
       setAqiData(aqi);
       setCurrentLocation({ lat, lon, city: cityName });
@@ -59,9 +63,8 @@ export default function App() {
       console.error(err);
       showToast('Failed to fetch weather data.', true);
     }
-  }, [tempUnit, windUnit, showToast]);
+  }, [showToast]); // no longer depends on tempUnit/windUnit — uses refs instead
 
-  // ===== Geo-locate =====
   const geoLocate = useCallback(() => {
     if (!navigator.geolocation) {
       showToast('Geolocation not supported');
@@ -79,12 +82,12 @@ export default function App() {
     );
   }, [handleFetchWeather, showToast]);
 
-  // ===== Init: load radar + check URL params =====
   useEffect(() => {
     let cancelled = false;
+    // Track timeout IDs so we can cancel them on cleanup
+    const timeouts = [];
 
     async function init() {
-      // Load radar data
       try {
         const frames = await fetchRainViewerData();
         if (!cancelled) setRadarFrames(frames);
@@ -92,13 +95,11 @@ export default function App() {
         console.error('RainViewer load failed:', err);
       }
 
-      // Hide splash
-      setTimeout(() => {
+      timeouts.push(setTimeout(() => {
         if (!cancelled) setShowSplash(false);
-      }, 1200);
+      }, 1200));
 
-      // Check URL params for shared location
-      setTimeout(() => {
+      timeouts.push(setTimeout(() => {
         if (cancelled || initialFetchDone.current) return;
         initialFetchDone.current = true;
 
@@ -114,26 +115,26 @@ export default function App() {
         } else {
           geoLocate();
         }
-      }, 1500);
+      }, 1500));
     }
 
     init();
-    return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+      timeouts.forEach(clearTimeout);
+    };
+  }, [handleFetchWeather, geoLocate]); // deps are now stable (handleFetchWeather uses refs)
 
-  // ===== Persist favorites =====
   useEffect(() => {
     localStorage.setItem('ws_favs', JSON.stringify(favorites));
   }, [favorites]);
 
-  // ===== Mobile: start with collapsed sidebar =====
   useEffect(() => {
     if (isMobile() && !showSplash) {
       setSidebarCollapsed(true);
     }
   }, [showSplash]);
 
-  // ===== Actions =====
   const setTheme = useCallback((t) => {
     setThemeState(t);
     localStorage.setItem('ws_theme', t);
@@ -141,21 +142,21 @@ export default function App() {
 
   const setTempUnit = useCallback((u) => {
     setTempUnitState(u);
+    tempUnitRef.current = u;
     localStorage.setItem('ws_temp', u);
-    // Re-fetch with new unit
     if (currentLocation.lat) {
-      handleFetchWeather(currentLocation.lat, currentLocation.lon, u, windUnit);
+      handleFetchWeather(currentLocation.lat, currentLocation.lon, u, windUnitRef.current);
     }
-  }, [currentLocation, windUnit, handleFetchWeather]);
+  }, [currentLocation, handleFetchWeather]);
 
   const setWindUnit = useCallback((u) => {
     setWindUnitState(u);
+    windUnitRef.current = u;
     localStorage.setItem('ws_wind', u);
-    // Re-fetch with new unit
     if (currentLocation.lat) {
-      handleFetchWeather(currentLocation.lat, currentLocation.lon, tempUnit, u);
+      handleFetchWeather(currentLocation.lat, currentLocation.lon, tempUnitRef.current, u);
     }
-  }, [currentLocation, tempUnit, handleFetchWeather]);
+  }, [currentLocation, handleFetchWeather]);
 
   const toggleFavorite = useCallback(() => {
     if (!currentLocation.lat || !currentLocation.city) return;
@@ -205,11 +206,9 @@ export default function App() {
 
   const isFavorite = favorites.some((f) => f.name === currentLocation.city);
 
-  // ===== Render =====
   return (
     <>
       <SplashScreen visible={showSplash} />
-
       {!showSplash && (
         <div className="h-screen w-screen relative block" style={{ background: 'var(--bg-primary)' }}>
           <Sidebar
@@ -235,7 +234,6 @@ export default function App() {
             onSetFrameIndex={setCurrentFrameIndex}
             showToast={showToast}
           />
-
           <WeatherMap
             mapRef={mapRef}
             theme={theme}
@@ -252,7 +250,6 @@ export default function App() {
             onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             onToggleSidebar={toggleSidebar}
           />
-
           <Toast toast={toast} />
         </div>
       )}

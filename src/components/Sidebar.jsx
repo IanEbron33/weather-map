@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import SearchBar from './SearchBar';
 import Favorites from './Favorites';
 import WeatherCard from './WeatherCard';
@@ -8,6 +9,20 @@ import ForecastList from './ForecastList';
 import MapLayers from './MapLayers';
 import RadarControls from './RadarControls';
 import Settings from './Settings';
+
+// Hook that re-evaluates on resize instead of reading window.innerWidth once at render
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= breakpoint);
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+
+  return isMobile;
+}
 
 export default function Sidebar({
   collapsed, onToggle,
@@ -21,10 +36,12 @@ export default function Sidebar({
   onSetLayerType, onSetFrameIndex,
   showToast,
 }) {
+  const isMobile = useIsMobile();
+
   return (
     <>
-      {/* Mobile backdrop */}
-      {!collapsed && window.innerWidth <= 768 && (
+      {/* Mobile backdrop — now correctly reactive to resize */}
+      {!collapsed && isMobile && (
         <div
           className="fixed inset-0 z-[1999]"
           style={{
@@ -80,17 +97,9 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Search */}
         <SearchBar onSelectLocation={onSelectLocation} showToast={showToast} />
+        <Favorites favorites={favorites} onSelectLocation={onSelectLocation} onRemoveFavorite={onRemoveFavorite} />
 
-        {/* Favorites */}
-        <Favorites
-          favorites={favorites}
-          onSelectLocation={onSelectLocation}
-          onRemoveFavorite={onRemoveFavorite}
-        />
-
-        {/* Weather sections (only when data loaded) */}
         {weatherData && (
           <>
             <WeatherCard
@@ -109,13 +118,8 @@ export default function Sidebar({
           </>
         )}
 
-        {/* Map Layers */}
-        <MapLayers
-          currentLayerType={currentLayerType}
-          onSetLayerType={onSetLayerType}
-        />
+        <MapLayers currentLayerType={currentLayerType} onSetLayerType={onSetLayerType} />
 
-        {/* Radar Controls */}
         {currentLayerType === 'radar' && radarFrames.length > 0 && (
           <RadarControls
             radarFrames={radarFrames}
@@ -124,13 +128,7 @@ export default function Sidebar({
           />
         )}
 
-        {/* Settings */}
-        <Settings
-          tempUnit={tempUnit}
-          windUnit={windUnit}
-          onSetTempUnit={onSetTempUnit}
-          onSetWindUnit={onSetWindUnit}
-        />
+        <Settings tempUnit={tempUnit} windUnit={windUnit} onSetTempUnit={onSetTempUnit} onSetWindUnit={onSetWindUnit} />
       </aside>
     </>
   );

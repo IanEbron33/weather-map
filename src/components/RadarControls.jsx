@@ -4,13 +4,14 @@ import { formatUnixShort } from '../utils/helpers';
 export default function RadarControls({ radarFrames, currentFrameIndex, onSetFrameIndex }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const intervalRef = useRef(null);
+  const initializedRef = useRef(false); // guard so we only jump to last frame once
 
-  // Initialize slider to last frame
   useEffect(() => {
-    if (radarFrames.length > 0 && currentFrameIndex === 0) {
+    if (radarFrames.length > 0 && !initializedRef.current) {
+      initializedRef.current = true;
       onSetFrameIndex(radarFrames.length - 1);
     }
-  }, [radarFrames.length]);
+  }, [radarFrames.length, onSetFrameIndex]); // onSetFrameIndex now included
 
   const stopAnimation = useCallback(() => {
     setIsPlaying(false);
@@ -32,7 +33,6 @@ export default function RadarControls({ radarFrames, currentFrameIndex, onSetFra
     else startAnimation();
   }, [isPlaying, stopAnimation, startAnimation]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -50,8 +50,6 @@ export default function RadarControls({ radarFrames, currentFrameIndex, onSetFra
       <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
         Radar Timeline
       </h3>
-
-      {/* Slider */}
       <div className="mb-2.5">
         <input
           type="range"
@@ -67,8 +65,6 @@ export default function RadarControls({ radarFrames, currentFrameIndex, onSetFra
           <span>{formatUnixShort(radarFrames[radarFrames.length - 1].time)}</span>
         </div>
       </div>
-
-      {/* Play/Pause */}
       <div className="flex justify-center">
         <button
           onClick={toggleAnimation}

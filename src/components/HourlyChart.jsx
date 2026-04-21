@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 export default function HourlyChart({ weatherData, tempUnit }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  useEffect(() => {
+  const draw = useCallback(() => {
     if (!weatherData || !canvasRef.current || !containerRef.current) return;
 
     const canvas = canvasRef.current;
@@ -45,7 +45,6 @@ export default function HourlyChart({ weatherData, tempUnit }) {
     const getX = (i) => padding.left + i * xStep;
     const getY = (t) => padding.top + chartH - ((t - minT) / rangeT) * chartH;
 
-    // Precipitation bars
     ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
     for (let i = 0; i < precip.length; i++) {
       if (precip[i] > 0) {
@@ -55,7 +54,6 @@ export default function HourlyChart({ weatherData, tempUnit }) {
       }
     }
 
-    // Temperature line
     ctx.beginPath();
     ctx.moveTo(getX(0), getY(temps[0]));
     for (let i = 1; i < temps.length; i++) {
@@ -69,7 +67,6 @@ export default function HourlyChart({ weatherData, tempUnit }) {
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // Gradient fill
     const grad = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
     grad.addColorStop(0, 'rgba(99,102,241,0.2)');
     grad.addColorStop(1, 'rgba(99,102,241,0)');
@@ -79,7 +76,6 @@ export default function HourlyChart({ weatherData, tempUnit }) {
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Dots
     for (let i = 0; i < temps.length; i += 3) {
       ctx.beginPath();
       ctx.arc(getX(i), getY(temps[i]), 3, 0, Math.PI * 2);
@@ -87,7 +83,6 @@ export default function HourlyChart({ weatherData, tempUnit }) {
       ctx.fill();
     }
 
-    // X labels
     ctx.fillStyle = '#5c6078';
     ctx.font = '10px Inter, sans-serif';
     ctx.textAlign = 'center';
@@ -97,7 +92,6 @@ export default function HourlyChart({ weatherData, tempUnit }) {
       ctx.fillText(timeStr, getX(i), h - 6);
     }
 
-    // Y labels + grid
     ctx.textAlign = 'right';
     const unitSym = '°';
     const ySteps = 4;
@@ -114,6 +108,19 @@ export default function HourlyChart({ weatherData, tempUnit }) {
       ctx.stroke();
     }
   }, [weatherData, tempUnit]);
+
+  // Redraw whenever data/unit changes
+  useEffect(() => {
+    draw();
+  }, [draw]);
+
+  // Also redraw whenever the container resizes (e.g. sidebar open/close)
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(() => draw());
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [draw]);
 
   if (!weatherData) return null;
 

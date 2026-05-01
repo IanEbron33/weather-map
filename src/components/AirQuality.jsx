@@ -39,7 +39,7 @@ export default function AirQuality({ aqiData }) {
         {[
           { label: 'PM2.5', value: c.pm2_5 != null ? `${c.pm2_5.toFixed(1)} µg/m³` : '—' },
           { label: 'PM10', value: c.pm10 != null ? `${c.pm10.toFixed(1)} µg/m³` : '—' },
-          { label: '☀️ UV Index', value: c.uv_index != null ? c.uv_index.toFixed(1) : '—' },
+          { label: 'UV Index', value: c.uv_index != null ? c.uv_index.toFixed(1) : '—' },
         ].map((d) => (
           <div
             key={d.label}

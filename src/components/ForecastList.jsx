@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
+import * as Icons from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 
 export default function ForecastList({ weatherData, tempUnit }) {
   if (!weatherData) return null;
@@ -29,8 +31,8 @@ export default function ForecastList({ weatherData, tempUnit }) {
 
   return (
     <div className="px-6 pb-4 max-md:px-4 max-md:pb-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
-        📅 7-Day Forecast
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
+        <CalendarDays size={14} /> 7-Day Forecast
       </h3>
       <div className="flex flex-col gap-1.5">
         {items.map((item) => (
@@ -47,8 +49,11 @@ export default function ForecastList({ weatherData, tempUnit }) {
             <span className="text-[13px] font-semibold w-12 flex-shrink-0 max-md:w-10 max-md:text-xs">
               {item.dayName}
             </span>
-            <span className="text-2xl w-9 text-center flex-shrink-0 max-md:text-xl max-md:w-7">
-              {item.icon}
+            <span className="flex justify-center w-9 flex-shrink-0 max-md:w-7 text-[var(--text-primary)]">
+              {(() => {
+                const IconComp = Icons[item.icon] || Icons.HelpCircle;
+                return <IconComp size={24} strokeWidth={1.5} />;
+              })()}
             </span>
             <span
               className="flex-1 text-[13px] capitalize whitespace-nowrap overflow-hidden text-ellipsis max-md:text-xs"

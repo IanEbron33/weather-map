@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
 import WeatherAnimation from './WeatherAnimation';
+import * as Icons from 'lucide-react';
 
 export default function WeatherCard({
   weatherData, currentLocation, tempUnit, windUnit,
@@ -98,8 +99,13 @@ export default function WeatherCard({
               {w.desc}
             </p>
           </div>
-          <div className="text-[52px] leading-none max-md:text-[44px]" style={{ filter: 'drop-shadow(0 4px 12px rgba(99,102,241,0.3))' }}>
-            {w.icon}
+          <div className="text-[52px] leading-none max-md:text-[44px]">
+            {w && w.icon && Icons[w.icon] ? (
+              (() => {
+                const IconComp = Icons[w.icon];
+                return <IconComp size={52} strokeWidth={1.5} />;
+              })()
+            ) : null}
           </div>
         </div>
 
@@ -114,12 +120,12 @@ export default function WeatherCard({
 
         <div className="grid grid-cols-2 gap-3 max-md:gap-2">
           {[
-            { label: '💧 Humidity', value: `${c.relative_humidity_2m}%` },
-            { label: '💨 Wind', value: `${c.wind_speed_10m} ${wUnit}` },
-            { label: '🌡️ Pressure', value: `${Math.round(c.surface_pressure)} hPa` },
-            { label: '👁️ Visibility', value: currentVisibility ?? '—' },
-            { label: '🌅 Sunrise', value: sunrise },
-            { label: '🌇 Sunset', value: sunset },
+            { label: 'Humidity', value: `${c.relative_humidity_2m}%` },
+            { label: 'Wind', value: `${c.wind_speed_10m} ${wUnit}` },
+            { label: 'Pressure', value: `${Math.round(c.surface_pressure)} hPa` },
+            { label: 'Visibility', value: currentVisibility ?? '—' },
+            { label: 'Sunrise', value: sunrise },
+            { label: 'Sunset', value: sunset },
           ].map((d) => (
             <div
               key={d.label}

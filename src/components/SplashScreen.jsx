@@ -1,3 +1,5 @@
+import { CloudSun } from 'lucide-react';
+
 export default function SplashScreen({ visible }) {
   if (!visible) return null;
 
@@ -9,8 +11,8 @@ export default function SplashScreen({ visible }) {
       <div className="text-center" style={{ animation: 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
         {/* Icon */}
         <div className="relative inline-block mb-6">
-          <div className="text-7xl relative z-[2]" style={{ animation: 'float 3s ease-in-out infinite' }}>
-            ⛅
+          <div className="text-7xl relative z-[2] text-[var(--text-primary)]" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            <CloudSun size={72} strokeWidth={1.5} />
           </div>
           <div
             className="absolute top-1/2 left-1/2 w-[70px] h-[70px] rounded-full z-[1]"
@@ -38,7 +40,7 @@ export default function SplashScreen({ visible }) {
           <div
             className="absolute left-0 top-0 h-full rounded"
             style={{
-              background: 'var(--gradient-brand)',
+              background: 'var(--accent)',
               animation: 'loaderSlide 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite',
             }}
           />

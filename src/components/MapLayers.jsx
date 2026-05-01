@@ -1,8 +1,10 @@
+import { Map, CloudRain, Satellite } from 'lucide-react';
+
 export default function MapLayers({ currentLayerType, onSetLayerType }) {
   const layers = [
-    { id: 'none', icon: '🗺️', label: 'Map Only' },
-    { id: 'radar', icon: '🌧️', label: 'Precipitation Radar' },
-    { id: 'satellite', icon: '🛰️', label: 'Satellite View' },
+    { id: 'none', icon: <Map size={18} />, label: 'Map Only' },
+    { id: 'radar', icon: <CloudRain size={18} />, label: 'Precipitation Radar' },
+    { id: 'satellite', icon: <Satellite size={18} />, label: 'Satellite View' },
   ];
 
   return (

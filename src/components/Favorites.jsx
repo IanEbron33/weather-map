@@ -1,13 +1,15 @@
+import { Star } from 'lucide-react';
+
 export default function Favorites({ favorites, onSelectLocation, onRemoveFavorite }) {
   if (!favorites.length) return null;
 
   return (
     <div className="px-6 pb-3 max-md:px-4">
       <h3
-        className="text-xs font-semibold uppercase tracking-wider mb-3"
+        className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-3"
         style={{ color: 'var(--text-secondary)' }}
       >
-        ⭐ Favorites
+        <Star size={14} /> Favorites
       </h3>
       <div className="flex flex-wrap gap-1.5">
         {favorites.map((f, i) => (

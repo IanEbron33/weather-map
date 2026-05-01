@@ -170,7 +170,7 @@ export default function App() {
         lat: currentLocation.lat,
         lon: currentLocation.lon,
       }]);
-      showToast('⭐ Added to favorites!', false, 'success');
+      showToast('Added to favorites!', false, 'success');
     }
   }, [currentLocation, favorites, showToast]);
 
@@ -178,7 +178,7 @@ export default function App() {
     if (!currentLocation.lat) return;
     const url = `${window.location.origin}${window.location.pathname}?lat=${currentLocation.lat.toFixed(4)}&lon=${currentLocation.lon.toFixed(4)}`;
     navigator.clipboard.writeText(url).then(
-      () => showToast('📋 Link copied to clipboard!', false, 'success'),
+      () => showToast('Link copied to clipboard!', false, 'success'),
       () => showToast('Failed to copy link', true)
     );
   }, [currentLocation, showToast]);

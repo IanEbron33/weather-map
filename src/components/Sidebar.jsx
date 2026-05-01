@@ -9,6 +9,7 @@ import ForecastList from './ForecastList';
 import MapLayers from './MapLayers';
 import RadarControls from './RadarControls';
 import Settings from './Settings';
+import { CloudSun } from 'lucide-react';
 
 // Hook that re-evaluates on resize instead of reading window.innerWidth once at render
 function useIsMobile(breakpoint = 768) {
@@ -72,7 +73,7 @@ export default function Sidebar({
           style={{ borderBottom: '1px solid var(--border)' }}
         >
           <div className="flex items-center gap-2.5">
-            <span className="text-2xl max-[400px]:text-xl">⛅</span>
+            <span className="flex items-center justify-center text-[var(--text-primary)]"><CloudSun size={28} /></span>
             <span className="text-xl font-bold brand-gradient tracking-tight max-[400px]:text-lg">
               WeatherScope
             </span>

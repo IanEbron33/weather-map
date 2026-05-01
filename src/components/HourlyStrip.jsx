@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
+import * as Icons from 'lucide-react';
 
 export default function HourlyStrip({ weatherData, tempUnit }) {
   if (!weatherData) return null;
@@ -51,15 +52,18 @@ export default function HourlyStrip({ weatherData, tempUnit }) {
               <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
                 {item.time}
               </span>
-              <span className="text-lg">{item.icon}</span>
+              <span className="text-lg">
+                {(() => {
+                  const IconComp = Icons[item.icon] || Icons.HelpCircle;
+                  return <IconComp size={20} strokeWidth={1.5} />;
+                })()}
+              </span>
               <span className="text-[13px] font-semibold" style={{ color: item.tempColor }}>
                 {item.temp}{item.unitSym}
               </span>
-              {item.precip > 0 && (
                 <span className="text-[10px]" style={{ color: '#60a5fa' }}>
-                  💧{item.precip}%
+                  {item.precip}%
                 </span>
-              )}
             </div>
           ))}
         </div>

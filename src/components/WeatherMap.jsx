@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getWeatherInfo, getTempStyle, getTempColor } from '../utils/weatherCodes';
 import { formatUnixFull } from '../utils/helpers';
+import * as Icons from 'lucide-react';
 
 // ===== Map sub-components (hooks that render nothing) =====
 
@@ -41,57 +42,46 @@ function InvalidateOnChange({ sidebarCollapsed }) {
   return null;
 }
 
-// ===== Overlay layer manager =====
 function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
   const map = useMap();
-  const layerRef = useRef(null);
+  const layersRef = useRef({}); // Store multiple layers
 
   useEffect(() => {
-    // Remove old layer
-    if (layerRef.current) {
-      map.removeLayer(layerRef.current);
-      layerRef.current = null;
-    }
-
-    if (layerType === 'none') return;
-
-    if (layerType === 'satellite') {
-      layerRef.current = L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { attribution: 'Tiles &copy; Esri', maxZoom: 18, zIndex: 5 }
-      ).addTo(map);
+    // Cleanup everything if not radar
+    if (layerType !== 'radar') {
+      Object.values(layersRef.current).forEach(layer => map.removeLayer(layer));
+      layersRef.current = {};
+      
+      if (layerType === 'satellite') {
+        layersRef.current['sat'] = L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          { maxZoom: 18, zIndex: 5 }
+        ).addTo(map);
+      }
       return;
     }
 
-    if (layerType === 'radar' && radarFrames.length > 0) {
-      const idx = Math.min(currentFrameIndex, radarFrames.length - 1);
-      const frame = radarFrames[idx];
-      const zoom = map.getZoom();
-      layerRef.current = L.tileLayer(
-        `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
-        { opacity: zoom > 7 ? 0 : 0.65, maxZoom: 7, zIndex: 10, errorTileUrl: '' }
-      ).addTo(map);
+    // Pre-load all radar frames if they aren't loaded yet
+    if (radarFrames.length > 0 && Object.keys(layersRef.current).length === 0) {
+      radarFrames.forEach((frame, idx) => {
+        const layer = L.tileLayer(
+          `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+          { opacity: 0, maxZoom: 7, zIndex: 10 }
+        ).addTo(map);
+        layersRef.current[idx] = layer;
+      });
     }
 
-    return () => {
-      if (layerRef.current) {
-        map.removeLayer(layerRef.current);
-        layerRef.current = null;
-      }
-    };
-  }, [layerType, radarFrames, currentFrameIndex, map]);
+    // Toggle opacity for the current frame
+    const zoom = map.getZoom();
+    const baseOpacity = zoom > 7 ? 0 : 0.65;
+    const targetIdx = Math.min(currentFrameIndex, radarFrames.length - 1);
 
-  // Zoom-dependent opacity for radar
-  useEffect(() => {
-    if (layerType !== 'radar') return;
-    const handleZoom = () => {
-      if (layerRef.current) {
-        layerRef.current.setOpacity(map.getZoom() > 7 ? 0 : 0.65);
-      }
-    };
-    map.on('zoomend', handleZoom);
-    return () => map.off('zoomend', handleZoom);
-  }, [layerType, map]);
+    Object.entries(layersRef.current).forEach(([idx, layer]) => {
+      layer.setOpacity(parseInt(idx) === targetIdx ? baseOpacity : 0);
+    });
+
+  }, [layerType, radarFrames, currentFrameIndex, map]);
 
   return null;
 }
@@ -124,17 +114,21 @@ function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
   return (
     <Marker ref={markerRef} position={[location.lat, location.lon]} icon={markerIcon}>
       <Popup maxWidth={260}>
-        <div style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ fontFamily: 'Quicksand, sans-serif' }}>
           <div className="font-bold text-base mb-0.5">{location.city}</div>
           <div className="text-[28px] font-extrabold" style={{ color: tempColor }}>
             {Math.round(c.temperature_2m)}{unitSym}
           </div>
-          <div className="text-[13px] capitalize" style={{ color: 'var(--text-secondary)' }}>
-            {w.icon} {w.desc}
+          <div className="text-[13px] capitalize flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+            {(() => {
+              const IconComp = Icons[w.icon] || Icons.HelpCircle;
+              return <IconComp size={14} />;
+            })()}
+            {w.desc}
           </div>
           <div className="flex gap-4 mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <span>💧 {c.relative_humidity_2m}%</span>
-            <span>💨 {c.wind_speed_10m} {wUnit}</span>
+            <span>{c.relative_humidity_2m}% Humidity</span>
+            <span>{c.wind_speed_10m} {wUnit} Wind</span>
           </div>
         </div>
       </Popup>
@@ -157,7 +151,7 @@ function RadarTimeIndicator({ layerType, radarFrames, currentFrameIndex }) {
         backdropFilter: 'blur(var(--glass-blur))',
       }}
     >
-      🌧️ Radar — {formatUnixFull(frame.time)}
+      Radar — {formatUnixFull(frame.time)}
     </div>
   );
 }

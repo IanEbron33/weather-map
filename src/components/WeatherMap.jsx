@@ -77,8 +77,8 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
                 emptyString: 'No wind data'
               },
               data: data,
-              maxVelocity: 15,
-              particleMultiplier: 1 / 800,
+              maxVelocity: 25,
+              particleMultiplier: 1 / 500,
               lineWidth: 2.5,
               colorScale: [
                 '#3288bd',

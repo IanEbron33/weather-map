@@ -5,7 +5,9 @@ window.L = L;
 import 'leaflet/dist/leaflet.css';
 import { getWeatherInfo, getTempStyle, getTempColor } from '../utils/weatherCodes';
 import { formatUnixFull } from '../utils/helpers';
-import * as Icons from 'lucide-react';
+import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
+
+const WeatherIcons = { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle };
 
 // ===== Map sub-components (hooks that render nothing) =====
 
@@ -185,7 +187,7 @@ function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
           </div>
           <div className="text-[13px] capitalize flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
             {(() => {
-              const IconComp = Icons[w.icon] || Icons.HelpCircle;
+              const IconComp = WeatherIcons[w.icon] || WeatherIcons.HelpCircle;
               return <IconComp size={14} />;
             })()}
             {w.desc}

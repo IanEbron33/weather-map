@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
-import * as Icons from 'lucide-react';
+import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
+
+const WeatherIcons = { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle };
 import { CalendarDays } from 'lucide-react';
 
 export default function ForecastList({ weatherData, tempUnit }) {
@@ -51,7 +53,7 @@ export default function ForecastList({ weatherData, tempUnit }) {
             </span>
             <span className="flex justify-center w-9 flex-shrink-0 max-md:w-7 text-[var(--text-primary)]">
               {(() => {
-                const IconComp = Icons[item.icon] || Icons.HelpCircle;
+                const IconComp = WeatherIcons[item.icon] || WeatherIcons.HelpCircle;
                 return <IconComp size={24} strokeWidth={1.5} />;
               })()}
             </span>

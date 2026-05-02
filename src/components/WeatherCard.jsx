@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
 import WeatherAnimation from './WeatherAnimation';
-import * as Icons from 'lucide-react';
+import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
+
+const WeatherIcons = { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle };
 
 export default function WeatherCard({
   weatherData, currentLocation, tempUnit, windUnit,
@@ -100,9 +102,9 @@ export default function WeatherCard({
             </p>
           </div>
           <div className="text-[52px] leading-none max-md:text-[44px]">
-            {w && w.icon && Icons[w.icon] ? (
+            {w && w.icon && WeatherIcons[w.icon] ? (
               (() => {
-                const IconComp = Icons[w.icon];
+                const IconComp = WeatherIcons[w.icon];
                 return <IconComp size={52} strokeWidth={1.5} />;
               })()
             ) : null}

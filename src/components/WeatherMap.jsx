@@ -3,8 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import L from 'leaflet';
 window.L = L;
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-velocity/dist/leaflet-velocity.css';
-import 'leaflet-velocity/dist/leaflet-velocity.js';
 import { getWeatherInfo, getTempStyle, getTempColor } from '../utils/weatherCodes';
 import { formatUnixFull } from '../utils/helpers';
 import * as Icons from 'lucide-react';
@@ -67,47 +65,57 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
           { opacity: 0.75, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
         ).addTo(map);
 
-        const addVelocity = (data) => {
-          if (!layersRef.current['velocity']) {
-            layersRef.current['velocity'] = L.velocityLayer({
-              displayValues: false,
-              displayOptions: {
-                velocityType: 'Global Wind',
-                position: 'bottomleft',
-                emptyString: 'No wind data'
-              },
-              data: data,
-              maxVelocity: 20,
-              particleMultiplier: 1 / 700,
-              lineWidth: 2,
-              colorScale: [
-                '#3288bd',
-                '#66c2a5',
-                '#abdda4',
-                '#e6f598',
-                '#fee08b',
-                '#fdae61',
-                '#f46d43',
-                '#d53e4f'
-              ],
-            });
-            layersRef.current['velocity'].addTo(map);
+        const loadVelocity = async () => {
+          await import('leaflet-velocity/dist/leaflet-velocity.css');
+          await import('leaflet-velocity/dist/leaflet-velocity.js');
+
+          // Safety check: if user switched layers while downloading, abort
+          if (!layersRef.current['wind']) return;
+
+          const addVelocity = (data) => {
+            if (!layersRef.current['velocity']) {
+              layersRef.current['velocity'] = L.velocityLayer({
+                displayValues: false,
+                displayOptions: {
+                  velocityType: 'Global Wind',
+                  position: 'bottomleft',
+                  emptyString: 'No wind data'
+                },
+                data: data,
+                maxVelocity: 20,
+                particleMultiplier: 1 / 700,
+                lineWidth: 2,
+                colorScale: [
+                  '#3288bd',
+                  '#66c2a5',
+                  '#abdda4',
+                  '#e6f598',
+                  '#fee08b',
+                  '#fdae61',
+                  '#f46d43',
+                  '#d53e4f'
+                ],
+              });
+              layersRef.current['velocity'].addTo(map);
+            }
+          };
+
+          if (windDataRef.current) {
+            addVelocity(windDataRef.current);
+          } else {
+            fetch('/wind-global.json')
+              .then(res => res.json())
+              .then(data => {
+                windDataRef.current = data;
+                if (layersRef.current['wind']) {
+                  addVelocity(data);
+                }
+              })
+              .catch(err => console.error('Failed to load wind data', err));
           }
         };
 
-        if (windDataRef.current) {
-          addVelocity(windDataRef.current);
-        } else {
-          fetch('/wind-global.json')
-            .then(res => res.json())
-            .then(data => {
-              windDataRef.current = data;
-              if (layersRef.current['wind']) {
-                addVelocity(data);
-              }
-            })
-            .catch(err => console.error('Failed to load wind data', err));
-        }
+        loadVelocity();
       } else if (layerType === 'temp') {
         layersRef.current['temp'] = L.tileLayer(
           `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${import.meta.env.VITE_OWM_API_KEY}`,

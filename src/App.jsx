@@ -3,8 +3,11 @@ import SplashScreen from './components/SplashScreen';
 import Sidebar from './components/Sidebar';
 import WeatherMap from './components/WeatherMap';
 import Toast from './components/Toast';
+import AiSummary from './components/AiSummary';
+import GeminiIcon from './components/GeminiIcon';
 import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeocode } from './utils/api';
 import { isMobile } from './utils/helpers';
+import { X } from 'lucide-react';
 
 export default function App() {
   const [theme, setThemeState] = useState(() => localStorage.getItem('ws_theme') || 'dark');
@@ -23,6 +26,7 @@ export default function App() {
   const [currentLayerType, setCurrentLayerType] = useState('none');
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [toast, setToast] = useState(null);
+  const [showAiPanel, setShowAiPanel] = useState(false);
 
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
@@ -51,11 +55,11 @@ export default function App() {
     const resolvedUnit = unit ?? tempUnitRef.current;
     const resolvedWUnit = wUnit ?? windUnitRef.current;
     try {
-      const [weather, aqi] = await Promise.all([
+      const [weather, aqi, cityName] = await Promise.all([
         fetchWeatherData(lat, lon, resolvedUnit, resolvedWUnit),
         fetchAirQualityData(lat, lon),
+        reverseGeocode(lat, lon)
       ]);
-      const cityName = await reverseGeocode(lat, lon);
       setWeatherData(weather);
       setAqiData(aqi);
       setCurrentLocation({ lat, lon, city: cityName });
@@ -250,6 +254,88 @@ export default function App() {
             onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             onToggleSidebar={toggleSidebar}
           />
+
+          {/* Floating AI Summary Button — fixed bottom right */}
+          {weatherData && (
+            <button
+              onClick={() => setShowAiPanel(p => !p)}
+              className="ai-panel-btn fixed z-[1002] flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all hover:scale-105 active:scale-95"
+              style={{
+                bottom: '148px',
+                right: '24px',
+                background: showAiPanel ? 'var(--accent-primary)' : 'var(--bg-card)',
+                border: showAiPanel ? '1px solid var(--accent-primary)' : '1px solid var(--border)',
+                backdropFilter: 'blur(12px)',
+                color: showAiPanel ? 'white' : 'var(--text-primary)',
+                boxShadow: showAiPanel
+                  ? '0 8px 32px rgba(99,102,241,0.4)'
+                  : '0 8px 32px rgba(0,0,0,0.2)',
+              }}
+            >
+              <GeminiIcon size={16} id="btn" />
+              AI Overview
+            </button>
+          )}
+
+          {/* Mobile backdrop — subtle, doesn't cover the panel */}
+          {showAiPanel && (
+            <div
+              className="fixed inset-0 z-[1003] md:hidden"
+              style={{ background: 'rgba(0,0,0,0.3)' }}
+              onClick={() => setShowAiPanel(false)}
+            />
+          )}
+
+          {/* AI Summary Panel */}
+          {showAiPanel && weatherData && (
+            <div
+              className="ai-panel fixed z-[1004]"
+              style={{
+                top: '50%',
+                right: '24px',
+                transform: 'translateY(-50%)',
+                width: '360px',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '20px',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+                animation: 'slideUp 0.22s ease',
+              }}
+            >
+              {/* Mobile top bar: drag handle + close button */}
+              <div className="flex items-center justify-between px-4 pt-3 pb-2 md:hidden">
+                <div className="w-8" /> {/* spacer */}
+                <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border)' }} />
+                <button
+                  onClick={() => setShowAiPanel(false)}
+                  className="w-7 h-7 flex items-center justify-center rounded-full transition-all hover:scale-110"
+                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+
+              {/* Desktop close button */}
+              <button
+                onClick={() => setShowAiPanel(false)}
+                className="hidden md:flex absolute top-3 right-3 z-10 w-7 h-7 items-center justify-center rounded-full transition-all hover:scale-110"
+                style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+              >
+                <X size={13} />
+              </button>
+
+              <AiSummary
+                weatherData={weatherData}
+                aqiData={aqiData}
+                currentLocation={currentLocation}
+              />
+            </div>
+          )}
+
+
           <Toast toast={toast} />
         </div>
       )}

@@ -1,4 +1,19 @@
 // ===== API Functions =====
+const apiCache = new Map();
+
+async function fetchWithCache(url, cacheTimeMs = 300000) { // 5 minutes cache
+  if (apiCache.has(url)) {
+    const { data, timestamp } = apiCache.get(url);
+    if (Date.now() - timestamp < cacheTimeMs) {
+      return data;
+    }
+  }
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('Fetch failed');
+  const data = await resp.json();
+  apiCache.set(url, { data, timestamp: Date.now() });
+  return data;
+}
 
 export async function fetchWeatherData(lat, lon, tempUnit, windUnit) {
   const params = new URLSearchParams({
@@ -13,18 +28,18 @@ export async function fetchWeatherData(lat, lon, tempUnit, windUnit) {
     forecast_days: 7,
   });
 
-  const resp = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  if (!resp.ok) throw new Error('Weather fetch failed');
-  return resp.json();
+  const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+  try {
+    return await fetchWithCache(url);
+  } catch (err) {
+    throw new Error('Weather fetch failed');
+  }
 }
 
 export async function fetchAirQualityData(lat, lon) {
   try {
-    const resp = await fetch(
-      `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm10,pm2_5,uv_index&timezone=auto`
-    );
-    if (!resp.ok) return null;
-    return resp.json();
+    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm10,pm2_5,uv_index&timezone=auto`;
+    return await fetchWithCache(url);
   } catch {
     return null;
   }

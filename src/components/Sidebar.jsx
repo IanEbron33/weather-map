@@ -9,6 +9,7 @@ import ForecastList from './ForecastList';
 import MapLayers from './MapLayers';
 import RadarControls from './RadarControls';
 import Settings from './Settings';
+import BestTime from './BestTime';
 import { CloudSun } from 'lucide-react';
 
 // Hook that re-evaluates on resize instead of reading window.innerWidth once at render
@@ -112,6 +113,7 @@ export default function Sidebar({
               onToggleFavorite={onToggleFavorite}
               onShareLocation={onShareLocation}
             />
+            <BestTime weatherData={weatherData} tempUnit={tempUnit} />
             <AirQuality aqiData={aqiData} />
             <HourlyChart weatherData={weatherData} tempUnit={tempUnit} />
             <HourlyStrip weatherData={weatherData} tempUnit={tempUnit} />

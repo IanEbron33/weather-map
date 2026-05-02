@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+window.L = L;
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-velocity/dist/leaflet-velocity.css';
+import 'leaflet-velocity/dist/leaflet-velocity.js';
 import { getWeatherInfo, getTempStyle, getTempColor } from '../utils/weatherCodes';
 import { formatUnixFull } from '../utils/helpers';
 import * as Icons from 'lucide-react';
@@ -45,6 +48,7 @@ function InvalidateOnChange({ sidebarCollapsed }) {
 function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
   const map = useMap();
   const layersRef = useRef({}); // Store multiple layers
+  const windDataRef = useRef(null);
 
   useEffect(() => {
     // Cleanup everything if not radar
@@ -62,6 +66,48 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
           'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=18da473b52e7d2c07a6ec45dcabdc9a0',
           { opacity: 0.75, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
         ).addTo(map);
+
+        const addVelocity = (data) => {
+          if (!layersRef.current['velocity']) {
+            layersRef.current['velocity'] = L.velocityLayer({
+              displayValues: false,
+              displayOptions: {
+                velocityType: 'Global Wind',
+                position: 'bottomleft',
+                emptyString: 'No wind data'
+              },
+              data: data,
+              maxVelocity: 15,
+              particleMultiplier: 1 / 800,
+              lineWidth: 2.5,
+              colorScale: [
+                '#3288bd',
+                '#66c2a5',
+                '#abdda4',
+                '#e6f598',
+                '#fee08b',
+                '#fdae61',
+                '#f46d43',
+                '#d53e4f'
+              ],
+            });
+            layersRef.current['velocity'].addTo(map);
+          }
+        };
+
+        if (windDataRef.current) {
+          addVelocity(windDataRef.current);
+        } else {
+          fetch('/wind-global.json')
+            .then(res => res.json())
+            .then(data => {
+              windDataRef.current = data;
+              if (layersRef.current['wind']) {
+                addVelocity(data);
+              }
+            })
+            .catch(err => console.error('Failed to load wind data', err));
+        }
       } else if (layerType === 'temp') {
         layersRef.current['temp'] = L.tileLayer(
           'https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=18da473b52e7d2c07a6ec45dcabdc9a0',

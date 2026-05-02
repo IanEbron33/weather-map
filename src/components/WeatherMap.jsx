@@ -55,7 +55,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
     if (layerType !== 'radar') {
       Object.values(layersRef.current).forEach(layer => map.removeLayer(layer));
       layersRef.current = {};
-      
+
       if (layerType === 'satellite') {
         layersRef.current['sat'] = L.tileLayer(
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -63,7 +63,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
         ).addTo(map);
       } else if (layerType === 'wind') {
         layersRef.current['wind'] = L.tileLayer(
-          'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=18da473b52e7d2c07a6ec45dcabdc9a0',
+          `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${import.meta.env.VITE_OWM_API_KEY}`,
           { opacity: 0.75, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
         ).addTo(map);
 
@@ -77,9 +77,9 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
                 emptyString: 'No wind data'
               },
               data: data,
-              maxVelocity: 25,
-              particleMultiplier: 1 / 500,
-              lineWidth: 2.5,
+              maxVelocity: 20,
+              particleMultiplier: 1 / 700,
+              lineWidth: 2,
               colorScale: [
                 '#3288bd',
                 '#66c2a5',
@@ -110,7 +110,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
         }
       } else if (layerType === 'temp') {
         layersRef.current['temp'] = L.tileLayer(
-          'https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=18da473b52e7d2c07a6ec45dcabdc9a0',
+          `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${import.meta.env.VITE_OWM_API_KEY}`,
           { opacity: 0.65, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
         ).addTo(map);
       }

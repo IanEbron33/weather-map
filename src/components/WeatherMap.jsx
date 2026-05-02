@@ -216,7 +216,7 @@ export default function WeatherMap({
       {/* Locate */}
       <button
         onClick={onGeoLocate}
-        className="absolute bottom-6 right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-5 max-md:right-4 max-md:w-12 max-md:h-12"
+        className="absolute bottom-6 right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-24 max-md:right-4 max-md:w-11 max-md:h-11"
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
@@ -236,7 +236,7 @@ export default function WeatherMap({
       {/* Theme toggle */}
       <button
         onClick={onToggleTheme}
-        className="absolute bottom-[84px] right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-[84px] max-md:right-4 max-md:w-12 max-md:h-12"
+        className="absolute bottom-[84px] right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-[150px] max-md:right-4 max-md:w-11 max-md:h-11"
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
@@ -286,7 +286,7 @@ export default function WeatherMap({
 
       {/* Thermal Legend */}
       <div
-        className="absolute bottom-[84px] left-6 z-[1000] w-[260px] p-3 px-4 rounded-xl transition-all max-md:hidden"
+        className="absolute bottom-[84px] left-6 z-[1000] w-[260px] p-3 px-4 rounded-xl transition-all max-md:bottom-24 max-md:left-4 max-md:w-[220px] max-md:p-2 max-md:px-3"
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',

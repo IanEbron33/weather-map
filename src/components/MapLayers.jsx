@@ -1,9 +1,11 @@
-import { Map, CloudRain, Satellite } from 'lucide-react';
+import { Map, CloudRain, Satellite, Wind, Thermometer } from 'lucide-react';
 
 export default function MapLayers({ currentLayerType, onSetLayerType }) {
   const layers = [
     { id: 'none', icon: <Map size={18} />, label: 'Map Only' },
     { id: 'radar', icon: <CloudRain size={18} />, label: 'Precipitation Radar' },
+    { id: 'wind', icon: <Wind size={18} />, label: 'Wind Speed' },
+    { id: 'temp', icon: <Thermometer size={18} />, label: 'Temperature Heatmap' },
     { id: 'satellite', icon: <Satellite size={18} />, label: 'Satellite View' },
   ];
 

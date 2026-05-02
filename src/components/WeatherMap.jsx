@@ -57,6 +57,16 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
           { maxZoom: 18, zIndex: 5 }
         ).addTo(map);
+      } else if (layerType === 'wind') {
+        layersRef.current['wind'] = L.tileLayer(
+          'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=18da473b52e7d2c07a6ec45dcabdc9a0',
+          { opacity: 0.75, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
+        ).addTo(map);
+      } else if (layerType === 'temp') {
+        layersRef.current['temp'] = L.tileLayer(
+          'https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=18da473b52e7d2c07a6ec45dcabdc9a0',
+          { opacity: 0.65, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
+        ).addTo(map);
       }
       return;
     }

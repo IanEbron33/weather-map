@@ -259,7 +259,7 @@ export default function App() {
           {weatherData && (
             <button
               onClick={() => setShowAiPanel(p => !p)}
-              className="ai-panel-btn fixed z-[1002] flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all hover:scale-105 active:scale-95"
+              className={`ai-panel-btn fixed z-[1002] flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all hover:scale-105 active:scale-95 ${showAiPanel ? 'ai-btn-active' : ''}`}
               style={{
                 bottom: '148px',
                 right: '24px',
@@ -268,8 +268,9 @@ export default function App() {
                 backdropFilter: 'blur(12px)',
                 color: showAiPanel ? 'white' : 'var(--text-primary)',
                 boxShadow: showAiPanel
-                  ? '0 8px 32px rgba(99,102,241,0.4)'
+                  ? '0 8px 32px rgba(99,102,241,0.5)'
                   : '0 8px 32px rgba(0,0,0,0.2)',
+                transition: 'background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease',
               }}
             >
               <GeminiIcon size={16} id="btn" />
@@ -277,11 +278,11 @@ export default function App() {
             </button>
           )}
 
-          {/* Mobile backdrop — subtle, doesn't cover the panel */}
+          {/* Mobile backdrop — fades in smoothly */}
           {showAiPanel && (
             <div
-              className="fixed inset-0 z-[1003] md:hidden"
-              style={{ background: 'rgba(0,0,0,0.3)' }}
+              className="ai-panel-backdrop fixed inset-0 z-[1003] md:hidden"
+              style={{ background: 'rgba(0,0,0,0.45)' }}
               onClick={() => setShowAiPanel(false)}
             />
           )}
@@ -289,24 +290,25 @@ export default function App() {
           {/* AI Summary Panel */}
           {showAiPanel && weatherData && (
             <div
-              className="ai-panel fixed z-[1004]"
+              className="ai-panel ai-panel-enter fixed z-[1004]"
               style={{
                 top: '50%',
                 right: '24px',
                 transform: 'translateY(-50%)',
-                width: '360px',
+                width: '380px',
                 maxHeight: '80vh',
-                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
                 background: 'var(--bg-card)',
                 border: '1px solid var(--border)',
                 backdropFilter: 'blur(20px)',
                 borderRadius: '20px',
                 boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-                animation: 'slideUp 0.22s ease',
               }}
             >
               {/* Mobile top bar: drag handle + close button */}
-              <div className="flex items-center justify-between px-4 pt-3 pb-2 md:hidden">
+              <div className="flex items-center justify-between px-4 pt-3 pb-2 md:hidden flex-shrink-0">
                 <div className="w-8" /> {/* spacer */}
                 <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border)' }} />
                 <button

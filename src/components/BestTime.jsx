@@ -10,12 +10,6 @@ export default function BestTime({ weatherData, tempUnit }) {
     const now = new Date();
     const hourly = weatherData.hourly;
     
-    // Find sunset today
-    let sunsetTime = null;
-    if (weatherData.daily?.sunset?.[0]) {
-      sunsetTime = new Date(weatherData.daily.sunset[0]);
-    }
-    
     let best = null;
     let highestScore = -999;
     
@@ -25,11 +19,11 @@ export default function BestTime({ weatherData, tempUnit }) {
       // Skip past hours
       if (time < now) continue; 
       
-      // Stop looking at the end of today
-      if (time.getDate() !== now.getDate()) break; 
+      // Stop looking after 24 hours to find the *next* best time
+      if (time.getTime() - now.getTime() > 24 * 60 * 60 * 1000) break;
       
-      // Stop looking after sunset
-      if (sunsetTime && time >= sunsetTime) continue; 
+      // Skip nighttime
+      if (hourly.is_day?.[i] === 0) continue; 
       
       let score = 0;
       const temp = hourly.temperature_2m[i];
@@ -62,6 +56,8 @@ export default function BestTime({ weatherData, tempUnit }) {
 
   if (!bestHour) return null;
 
+  const isTomorrow = bestHour.time.getDate() !== new Date().getDate();
+
   return (
     <div className="mx-6 mb-4 p-4 rounded-2xl max-md:mx-4 max-md:mb-3 flex items-center justify-between" 
          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -70,7 +66,7 @@ export default function BestTime({ weatherData, tempUnit }) {
           <Sun size={16} className="text-yellow-500" /> Best Time to Go Outside
         </h3>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {bestHour.time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} • {bestHour.desc}, {Math.round(bestHour.temp)}{unitSym}
+          {isTomorrow ? 'Tomorrow, ' : 'Today, '}{bestHour.time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} • {bestHour.desc}, {Math.round(bestHour.temp)}{unitSym}
         </p>
       </div>
     </div>

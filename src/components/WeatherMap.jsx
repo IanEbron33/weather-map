@@ -63,7 +63,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
         ).addTo(map);
       } else if (layerType === 'wind') {
         layersRef.current['wind'] = L.tileLayer(
-          `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${import.meta.env.VITE_OWM_API_KEY}`,
+          `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${process.env.NEXT_PUBLIC_OWM_API_KEY}`,
           { opacity: 0.75, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
         ).addTo(map);
 
@@ -120,7 +120,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
         loadVelocity();
       } else if (layerType === 'temp') {
         layersRef.current['temp'] = L.tileLayer(
-          `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${import.meta.env.VITE_OWM_API_KEY}`,
+          `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${process.env.NEXT_PUBLIC_OWM_API_KEY}`,
           { opacity: 0.65, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true }
         ).addTo(map);
       }

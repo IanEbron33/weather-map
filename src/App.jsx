@@ -274,7 +274,7 @@ export default function App() {
               }}
             >
               <GeminiIcon size={16} id="btn" />
-              AI Overview
+              Gemini
             </button>
           )}
 

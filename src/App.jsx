@@ -27,7 +27,8 @@ export default function App() {
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [toast, setToast] = useState(null);
   const [showAiPanel, setShowAiPanel] = useState(false);
-
+  const [showPagasaLayer, setShowPagasaLayer] = useState(false);
+  const [pagasaData, setPagasaData] = useState(null);
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
 
@@ -139,6 +140,12 @@ export default function App() {
     }
   }, [showSplash]);
 
+  useEffect(() => {
+    if (showPagasaLayer && pagasaData && pagasaData.activeCyclones && pagasaData.activeCyclones.length === 0) {
+      showToast('PAGASA: No active typhoons in the PAR at this time.', false, 'info');
+    }
+  }, [showPagasaLayer, pagasaData, showToast]);
+
   const setTheme = useCallback((t) => {
     setThemeState(t);
     localStorage.setItem('ws_theme', t);
@@ -236,6 +243,8 @@ export default function App() {
             onRemoveFavorite={handleRemoveFavorite}
             onSetLayerType={setCurrentLayerType}
             onSetFrameIndex={setCurrentFrameIndex}
+            showPagasaLayer={showPagasaLayer}
+            onTogglePagasaLayer={() => setShowPagasaLayer(p => !p)}
             showToast={showToast}
           />
           <WeatherMap
@@ -253,6 +262,8 @@ export default function App() {
             onGeoLocate={geoLocate}
             onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             onToggleSidebar={toggleSidebar}
+            showPagasaLayer={showPagasaLayer}
+            onPagasaDataLoaded={setPagasaData}
           />
 
           {/* Floating AI Summary Button — fixed bottom right */}
@@ -333,6 +344,7 @@ export default function App() {
                 weatherData={weatherData}
                 aqiData={aqiData}
                 currentLocation={currentLocation}
+                pagasaData={showPagasaLayer ? pagasaData : null}
               />
             </div>
           )}

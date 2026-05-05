@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 window.L = L;
 import 'leaflet/dist/leaflet.css';
+import PagasaLayer from './PagasaLayer';
 import { getWeatherInfo, getTempStyle, getTempColor } from '../utils/weatherCodes';
 import { formatUnixFull } from '../utils/helpers';
 import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
@@ -45,7 +46,7 @@ function InvalidateOnChange({ sidebarCollapsed }) {
   return null;
 }
 
-function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
+function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme }) {
   const map = useMap();
   const layersRef = useRef({}); // Store multiple layers
   const windDataRef = useRef(null);
@@ -84,18 +85,30 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex }) {
                   emptyString: 'No wind data'
                 },
                 data: data,
-                maxVelocity: 20,
-                particleMultiplier: 1 / 700,
-                lineWidth: 2,
-                colorScale: [
-                  '#3288bd',
-                  '#66c2a5',
-                  '#abdda4',
-                  '#e6f598',
-                  '#fee08b',
-                  '#fdae61',
-                  '#f46d43',
-                  '#d53e4f'
+                maxVelocity: 40,
+                particleMultiplier: 1 / 450,
+                lineWidth: 2.0,
+                velocityScale: 0.015,
+                colorScale: theme === 'light' ? [
+                  '#312e81', // very dark indigo
+                  '#1e3a8a', // dark blue
+                  '#0f766e', // dark teal
+                  '#15803d', // dark green
+                  '#854d0e', // dark yellow/olive
+                  '#b45309', // amber
+                  '#c2410c', // dark orange
+                  '#b91c1c', // dark red
+                  '#831843'  // dark pink
+                ] : [
+                  '#4c3a9f', // low wind (purple)
+                  '#3167a5',
+                  '#4f8c9b',
+                  '#6fac7c',
+                  '#acbf5e',
+                  '#e6b741', // moderate (yellow)
+                  '#db7b34',
+                  '#c03d3e', // strong (red)
+                  '#a12059'  // severe (magenta)
                 ],
               });
               layersRef.current['velocity'].addTo(map);
@@ -223,14 +236,15 @@ function RadarTimeIndicator({ layerType, radarFrames, currentFrameIndex }) {
 }
 
 // ===== Main WeatherMap component =====
-export default function WeatherMap({
+const WeatherMap = React.memo(function WeatherMap({
   mapRef, theme, currentLayerType, radarFrames, currentFrameIndex,
   weatherData, currentLocation, tempUnit, windUnit, sidebarCollapsed,
   onMapClick, onGeoLocate, onToggleTheme, onToggleSidebar,
+  showPagasaLayer, onPagasaDataLoaded
 }) {
   const tileUrl = theme === 'light'
-    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
-    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+    ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
 
   return (
     <main className="absolute inset-0 z-[1] overflow-hidden">
@@ -257,16 +271,36 @@ export default function WeatherMap({
           maxNativeZoom={18}
         />
 
+        {/* Highlighted labels layer for dark mode to make countries pop */}
+        {theme === 'dark' && (
+          <TileLayer
+            key="dark-labels"
+            url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png"
+            subdomains="abcd"
+            maxZoom={18}
+            maxNativeZoom={18}
+            className="highlighted-map-labels"
+            zIndex={20} // Ensure labels stay above most base layers
+          />
+        )}
+
         <OverlayLayer
           layerType={currentLayerType}
           radarFrames={radarFrames}
           currentFrameIndex={currentFrameIndex}
+          theme={theme}
         />
 
         <WeatherMarker
           location={currentLocation}
           weatherData={weatherData}
           tempUnit={tempUnit}
+          windUnit={windUnit}
+        />
+
+        <PagasaLayer 
+          visible={showPagasaLayer} 
+          onDataLoaded={onPagasaDataLoaded}
           windUnit={windUnit}
         />
       </MapContainer>
@@ -380,4 +414,6 @@ export default function WeatherMap({
       </div>
     </main>
   );
-}
+});
+
+export default WeatherMap;

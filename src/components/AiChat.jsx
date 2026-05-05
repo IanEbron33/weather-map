@@ -30,7 +30,7 @@ function saveChatHistory(city, messages) {
   } catch { /* ignore */ }
 }
 
-function buildSystemContext(weatherData, aqiData, city) {
+function buildSystemContext(weatherData, aqiData, city, pagasaData) {
   const temp     = Math.round(weatherData?.current?.temperature_2m ?? 0);
   const apparent = Math.round(weatherData?.current?.apparent_temperature ?? temp);
   const humidity = weatherData?.current?.relative_humidity_2m ?? 'N/A';
@@ -39,8 +39,21 @@ function buildSystemContext(weatherData, aqiData, city) {
   const aqi      = aqiData?.current?.us_aqi ?? 'N/A';
   const uv       = aqiData?.current?.uv_index ?? 'N/A';
 
+  let pagasaAlerts = '';
+  if (pagasaData) {
+    pagasaAlerts = '\nPAGASA ALERTS FOR PHILIPPINES:\n';
+    if (pagasaData.activeCyclones?.length) {
+      const c = pagasaData.activeCyclones[0];
+      pagasaAlerts += `- Active Cyclone: ${c.category} ${c.name} (${c.internationalName}), Wind: ${c.windSpeedKmh}km/h.\n`;
+    }
+    if (pagasaData.rainfallAdvisories?.length) {
+      const adv = pagasaData.rainfallAdvisories[0];
+      pagasaAlerts += `- Rainfall Warning: ${adv.level} warning in ${adv.areas.join(', ')}. ${adv.message}\n`;
+    }
+  }
+
   return `You are a weather-only assistant for WeatherScope, currently showing data for ${city}.
-Current conditions: ${temp}°C(feels ${apparent}°C), ${humidity}%RH, wind ${wind}km/h, rain ${rainProb}%, AQI ${aqi}, UV ${uv}.
+Current conditions: ${temp}°C(feels ${apparent}°C), ${humidity}%RH, wind ${wind}km/h, rain ${rainProb}%, AQI ${aqi}, UV ${uv}.${pagasaAlerts}
 
 STRICT RULES — you must follow these without exception:
 1. Only answer questions about weather, climate, forecasts, air quality, UV, wind, outdoor safety, or what to wear/bring based on weather.
@@ -87,7 +100,7 @@ async function streamGemini(apiKey, contents, onChunk, signal) {
   }
 }
 
-export default function AiChat({ weatherData, aqiData, currentLocation }) {
+export default function AiChat({ weatherData, aqiData, currentLocation, pagasaData }) {
   const city = currentLocation?.city || 'this location';
   const [messages, setMessages] = useState(() => loadChatHistory(city));
   const [input, setInput] = useState('');
@@ -217,7 +230,7 @@ export default function AiChat({ weatherData, aqiData, currentLocation }) {
       const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
       if (!apiKey) throw new Error('Missing API key');
 
-      const systemCtx = buildSystemContext(weatherData, aqiData, city);
+      const systemCtx = buildSystemContext(weatherData, aqiData, city, pagasaData);
       const contents = [
         { role: 'user',  parts: [{ text: systemCtx }] },
         { role: 'model', parts: [{ text: `Hi! I'm your weather assistant for ${city}.` }] },

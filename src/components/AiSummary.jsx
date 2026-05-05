@@ -69,7 +69,7 @@ const TABS = [
   { id: 'chat',     label: 'Chat',     icon: MessageCircle },
 ];
 
-export default function AiSummary({ weatherData, aqiData, currentLocation }) {
+export default function AiSummary({ weatherData, aqiData, currentLocation, pagasaData }) {
   const city = currentLocation?.city || 'this location';
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -283,6 +283,7 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
             weatherData={weatherData}
             aqiData={aqiData}
             currentLocation={currentLocation}
+            pagasaData={pagasaData}
           />
         )}
         </div>{/* end animation wrapper */}

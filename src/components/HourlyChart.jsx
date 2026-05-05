@@ -133,8 +133,8 @@ export default function HourlyChart({ weatherData, tempUnit }) {
         ref={containerRef}
         className="p-3 pb-2 rounded-lg mb-2.5"
         style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.04)',
+          background: 'var(--bg-input)',
+          border: '1px solid var(--border)',
         }}
       >
         <canvas ref={canvasRef} className="block w-full" style={{ height: '160px' }} />

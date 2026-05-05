@@ -23,15 +23,15 @@ export default function MapLayers({ currentLayerType, onSetLayerType }) {
               onClick={() => onSetLayerType(layer.id)}
               className="flex items-center gap-2.5 py-2.5 px-3.5 rounded-lg text-sm font-medium transition-all max-md:py-3 max-md:px-3.5"
               style={{
-                background: isActive ? 'var(--accent-glow)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${isActive ? 'var(--accent)' : 'rgba(255,255,255,0.04)'}`,
-                color: isActive ? 'var(--accent-hover)' : 'inherit',
+                background: isActive ? 'var(--accent-glow)' : 'var(--bg-input)',
+                border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                color: isActive ? 'var(--accent-hover)' : 'var(--text-primary)',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) e.currentTarget.style.background = 'var(--bg-card-hover)';
               }}
               onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                if (!isActive) e.currentTarget.style.background = 'var(--bg-input)';
               }}
             >
               <span className="text-base">{layer.icon}</span>

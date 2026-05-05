@@ -45,11 +45,11 @@ export default function HourlyStrip({ weatherData, tempUnit }) {
               key={item.key}
               className="flex flex-col items-center gap-1 py-2 px-2.5 rounded-lg min-w-[58px] transition-colors max-md:min-w-[54px] max-md:py-1.5 max-md:px-2"
               style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.04)',
+                background: 'var(--bg-input)',
+                border: '1px solid var(--border)',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-input)')}
             >
               <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
                 {item.time}

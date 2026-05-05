@@ -42,11 +42,11 @@ export default function ForecastList({ weatherData, tempUnit }) {
             key={item.key}
             className="flex items-center gap-3 py-2.5 px-3.5 rounded-lg transition-colors max-md:gap-2 max-md:py-2.5 max-md:px-3"
             style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.04)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border)',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-input)')}
           >
             <span className="text-[13px] font-semibold w-12 flex-shrink-0 max-md:w-10 max-md:text-xs">
               {item.dayName}

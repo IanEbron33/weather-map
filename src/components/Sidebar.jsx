@@ -36,6 +36,7 @@ export default function Sidebar({
   onToggleFavorite, onShareLocation,
   onSelectLocation, onRemoveFavorite,
   onSetLayerType, onSetFrameIndex,
+  showPagasaLayer, onTogglePagasaLayer,
   showToast,
 }) {
   const isMobile = useIsMobile();
@@ -122,6 +123,20 @@ export default function Sidebar({
         )}
 
         <MapLayers currentLayerType={currentLayerType} onSetLayerType={onSetLayerType} />
+
+        {/* PAGASA Toggle */}
+        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="flex flex-col">
+            <span className="font-semibold text-[15px]" style={{ color: 'var(--text-primary)' }}>PAGASA Alerts</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>PH Typhoons & Warnings</span>
+          </div>
+          <button
+            onClick={onTogglePagasaLayer}
+            className={`w-12 h-6 rounded-full relative transition-colors ${showPagasaLayer ? 'bg-red-500' : 'bg-gray-600'}`}
+          >
+            <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${showPagasaLayer ? 'left-7' : 'left-1'}`} />
+          </button>
+        </div>
 
         {currentLayerType === 'radar' && radarFrames.length > 0 && (
           <RadarControls

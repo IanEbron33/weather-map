@@ -142,7 +142,7 @@ export default function App() {
 
   useEffect(() => {
     if (showPagasaLayer && pagasaData && pagasaData.activeCyclones && pagasaData.activeCyclones.length === 0) {
-      showToast('PAGASA: No active typhoons in the PAR at this time.', false, 'info');
+      showToast('Typhoon Tracker: No active storms in the Western Pacific at this time.', false, 'info');
     }
   }, [showPagasaLayer, pagasaData, showToast]);
 

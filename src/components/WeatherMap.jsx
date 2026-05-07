@@ -298,8 +298,8 @@ const WeatherMap = React.memo(function WeatherMap({
           windUnit={windUnit}
         />
 
-        <PagasaLayer 
-          visible={showPagasaLayer} 
+        <PagasaLayer
+          visible={showPagasaLayer}
           onDataLoaded={onPagasaDataLoaded}
           windUnit={windUnit}
         />

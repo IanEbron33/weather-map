@@ -50,6 +50,8 @@ function buildTrackDotHtml(color, size) {
   return `<div style="width:${size}px;height:${size}px;background:${color};border-radius:50%;border:2.5px solid rgba(255,255,255,0.9);box-shadow:0 0 8px ${color};"></div>`;
 }
 
+// Set to null to always pull fresh data from the live GDACS API
+// (set to a cached value after first fetch to avoid redundant calls per session)
 let globalPagasaCache = null;
 
 const PagasaLayer = React.memo(function PagasaLayer({ visible, onDataLoaded, windUnit = 'kmh' }) {
@@ -63,14 +65,22 @@ const PagasaLayer = React.memo(function PagasaLayer({ visible, onDataLoaded, win
       return;
     }
     try {
-      const res = await fetch('/api/pagasa');
+      // Add timestamp to bust Next.js's route cache during development
+      const res = await fetch(`/api/pagasa?t=${Date.now()}`);
       if (!res.ok) throw new Error('Failed to fetch PAGASA data');
       const data = await res.json();
-      globalPagasaCache = data;
+      // Only cache if the API succeeded without an error flag
+      if (!data.error) {
+        globalPagasaCache = data;
+      }
       setPagasaData(data);
       if (onDataLoaded) onDataLoaded(data);
     } catch (err) {
       console.error('PAGASA fetch error:', err);
+      // Set empty state so "no active typhoon" toast fires correctly
+      const fallback = { activeCyclones: [], rainfallAdvisories: [], error: err.message };
+      setPagasaData(fallback);
+      if (onDataLoaded) onDataLoaded(fallback);
     }
   }, [onDataLoaded]);
 

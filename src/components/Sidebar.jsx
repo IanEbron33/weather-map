@@ -124,11 +124,11 @@ export default function Sidebar({
 
         <MapLayers currentLayerType={currentLayerType} onSetLayerType={onSetLayerType} />
 
-        {/* PAGASA Toggle */}
+        {/* Typhoon Tracker Toggle */}
         <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex flex-col">
-            <span className="font-semibold text-[15px]" style={{ color: 'var(--text-primary)' }}>PAGASA Alerts</span>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>PH Typhoons & Warnings</span>
+            <span className="font-semibold text-[15px]" style={{ color: 'var(--text-primary)' }}>Typhoon Tracker</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>WNP Storms · via GDACS/JTWC</span>
           </div>
           <button
             onClick={onTogglePagasaLayer}

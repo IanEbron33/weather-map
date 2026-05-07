@@ -41,7 +41,7 @@ function buildSystemContext(weatherData, aqiData, city, pagasaData) {
 
   let pagasaAlerts = '';
   if (pagasaData) {
-    pagasaAlerts = '\nPAGASA ALERTS FOR PHILIPPINES:\n';
+    pagasaAlerts = '\nTYPHOON TRACKER (Western Pacific, via GDACS/JTWC):\n';
     if (pagasaData.activeCyclones?.length) {
       const c = pagasaData.activeCyclones[0];
       pagasaAlerts += `- Active Cyclone: ${c.category} ${c.name} (${c.internationalName}), Wind: ${c.windSpeedKmh}km/h.\n`;

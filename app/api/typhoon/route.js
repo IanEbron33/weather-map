@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 // Cache live data for 15 minutes on Vercel's edge network
 export const revalidate = 900;
 
-// Western North Pacific basin — the full monitoring area PAGASA tracks
-// Covers 0°N-40°N, 100°E-180°E (includes all storms that could affect the Philippines)
+// Western North Pacific basin monitoring area
+// Covers 0°N-40°N, 100°E-180°E
 const WNP_BOUNDS = { minLat: 0, maxLat: 40, minLon: 100, maxLon: 180 };
 
 function isInWesternPacific(lat, lon) {
@@ -31,30 +31,75 @@ async function fetchGdacsTrack(eventId, episodeId) {
     if (!res.ok) return [];
 
     const geoJson = await res.json();
+    let trackPoints = [];
+    const now = Date.now();
+    const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
 
-    // The GeoJSON contains LineString features for the track
-    const track = [];
     for (const feature of geoJson.features || []) {
       const geom = feature.geometry;
-      if (!geom) continue;
+      if (!geom || geom.type !== 'Point') continue;
 
-      if (geom.type === 'Point') {
-        const [lon, lat] = geom.coordinates;
-        const props = feature.properties || {};
-        track.push({
-          lat,
-          lon,
-          time: props.trackdate || props.datetime || 'Forecast',
-        });
-      } else if (geom.type === 'LineString') {
-        geom.coordinates.forEach(([lon, lat], i) => {
-          track.push({ lat, lon, time: i === 0 ? 'Now' : `+${i * 12}h` });
-        });
+      const props = feature.properties || {};
+      const [lon, lat] = geom.coordinates;
+      
+      // Filter by source to avoid "braiding" multiple models
+      // We prioritize JTWC or the first major source found
+      const source = (props.source || props.model || '').toUpperCase();
+      if (source && source !== 'JTWC' && source !== 'GDACS') {
+        // If we have JTWC data, skip other sources like 'ENSEMBLE' or 'ECM'
+        // to keep the line single and clean.
+        if (geoJson.features.some(f => (f.properties.source||'').toUpperCase() === 'JTWC')) {
+           continue;
+        }
+      }
+
+      let timeStr = props.trackdate || props.datetime || props.validity || '';
+      if (!timeStr) continue;
+
+      if (timeStr.includes('/') && timeStr.split('/').length === 3) {
+        const parts = timeStr.split(' ');
+        const dateParts = parts[0].split('/');
+        timeStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}${parts[1] ? 'T' + parts[1] : ''}`;
+      }
+
+      const timestamp = new Date(timeStr).getTime();
+      if (isNaN(timestamp)) continue;
+      if (Math.abs(now - timestamp) > TEN_DAYS_MS) continue;
+
+      trackPoints.push({
+        lat,
+        lon,
+        time: timeStr,
+        timestamp,
+        source,
+        isForecast: props.isforecast === 'true' || props.isforecast === true || !!props.validity
+      });
+    }
+
+    // Sort chronologically
+    trackPoints.sort((a, b) => a.timestamp - b.timestamp);
+
+    // Final "Single Path" Filter: 
+    // 1. Group by hour to ensure no two points are within 1 hour of each other
+    // 2. Remove duplicate coordinates
+    const cleanPath = [];
+    const seenHours = new Set();
+
+    for (const pt of trackPoints) {
+      const hourKey = Math.floor(pt.timestamp / (3600 * 1000));
+      
+      if (!seenHours.has(hourKey)) {
+        // Also ensure we don't have exact coordinate duplicates
+        const isDuplicateCoord = cleanPath.some(cp => cp.lat === pt.lat && cp.lon === pt.lon);
+        
+        if (!isDuplicateCoord) {
+          cleanPath.push(pt);
+          seenHours.add(hourKey);
+        }
       }
     }
 
-    // Deduplicate and keep max 6 points for display clarity
-    return track.slice(0, 6);
+    return cleanPath;
   } catch {
     return [];
   }
@@ -62,14 +107,13 @@ async function fetchGdacsTrack(eventId, episodeId) {
 
 export async function GET() {
   try {
-    // Step 1: Fetch the live GDACS RSS feed for current tropical cyclones
+    // Fetch live GDACS RSS feed
     const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
     const rssRes = await fetch(rssUrl, { next: { revalidate: 900 } });
     if (!rssRes.ok) throw new Error(`GDACS RSS fetch failed: ${rssRes.status}`);
 
     const rssText = await rssRes.text();
 
-    // Step 2: Parse TC items from XML using regex (no XML parser needed in edge)
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     const activeCyclones = [];
     let match;
@@ -77,72 +121,69 @@ export async function GET() {
     while ((match = itemRegex.exec(rssText)) !== null) {
       const itemXml = match[1];
 
-      // Only process Tropical Cyclone events
       const eventType = (itemXml.match(/<gdacs:eventtype>(.*?)<\/gdacs:eventtype>/) || [])[1];
       if (eventType !== 'TC') continue;
 
-      // Only process currently active events
       const isCurrent = (itemXml.match(/<gdacs:iscurrent>(.*?)<\/gdacs:iscurrent>/) || [])[1];
       if (isCurrent !== 'true') continue;
 
-      // Get coordinates
       const lat = parseFloat((itemXml.match(/<geo:lat>(.*?)<\/geo:lat>/) || [])[1] || '0');
       const lon = parseFloat((itemXml.match(/<geo:long>(.*?)<\/geo:long>/) || [])[1] || '0');
 
-      // Filter to Western North Pacific basin (PAGASA monitoring area)
       if (!isInWesternPacific(lat, lon)) continue;
 
       const eventName = (itemXml.match(/<gdacs:eventname>(.*?)<\/gdacs:eventname>/) || [])[1] || 'Unknown';
       const eventId   = (itemXml.match(/<gdacs:eventid>(.*?)<\/gdacs:eventid>/) || [])[1] || '';
       const episodeId = (itemXml.match(/<gdacs:episodeid>(.*?)<\/gdacs:episodeid>/) || [])[1] || '1';
       const severityVal = parseFloat((itemXml.match(/<gdacs:severity[^>]*value="([^"]*)"/) || [])[1] || '0');
-      const severityText = (itemXml.match(/<gdacs:severity[^>]*>(.*?)<\/gdacs:severity>/) || [])[1] || '';
       const alertLevel = (itemXml.match(/<gdacs:alertlevel>(.*?)<\/gdacs:alertlevel>/) || [])[1] || 'Green';
 
       const category = mapSeverityToCategory(severityVal);
+      let projectedPath = await fetchGdacsTrack(eventId, episodeId);
 
-      // Step 3: Fetch the forecast track from the GeoJSON resource
-      const projectedPath = await fetchGdacsTrack(eventId, episodeId);
+      // Find the point in the track closest to 'Now' (RSS time)
+      // or simply add the RSS point to the track if it's missing.
+      const nowPoint = { 
+        lat, 
+        lon, 
+        time: 'Now', 
+        timestamp: Date.now(), 
+        isCurrent: true 
+      };
 
-      // If no track from GeoJSON, just use current position
-      const finalPath = projectedPath.length > 0
-        ? projectedPath
-        : [{ lat, lon, time: 'Now' }];
-
-      // Ensure the first point is labelled "Now"
-      if (finalPath.length > 0) finalPath[0].time = 'Now';
+      // Merge: Keep historical points before now, add now, then forecast points
+      const history = projectedPath.filter(p => !p.isForecast);
+      const forecast = projectedPath.filter(p => p.isForecast);
+      
+      const finalPath = [...history, nowPoint, ...forecast];
 
       activeCyclones.push({
-        name: eventName.replace(/-\d+$/, ''), // strip year suffix e.g. "HAGUPIT-26" → "HAGUPIT"
+        name: eventName.replace(/-\d+$/, ''),
         internationalName: eventName,
         category,
         alertLevel,
         currentLocation: { lat, lon },
         windSpeedKmh: Math.round(severityVal),
-        pressureHpa: null, // not provided by GDACS RSS
         projectedPath: finalPath,
         gdacsEventId: eventId,
         sourceUrl: `https://www.gdacs.org/report.aspx?eventtype=TC&eventid=${eventId}`,
-        signals: {}, // PAGASA-specific signals not available from GDACS
       });
     }
 
     return NextResponse.json({
       activeCyclones,
-      rainfallAdvisories: [],
       source: 'GDACS / JTWC',
       timestamp: new Date().toISOString(),
     });
 
   } catch (error) {
-    console.error('PAGASA/GDACS API Error:', error);
+    console.error('Typhoon Tracker API Error:', error);
 
-    // Graceful fallback — empty state triggers the "no active typhoon" toast
     return NextResponse.json({
       activeCyclones: [],
-      rainfallAdvisories: [],
       error: 'Failed to fetch live cyclone data from GDACS.',
       timestamp: new Date().toISOString(),
     }, { status: 500 });
   }
 }
+

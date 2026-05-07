@@ -27,8 +27,8 @@ export default function App() {
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [toast, setToast] = useState(null);
   const [showAiPanel, setShowAiPanel] = useState(false);
-  const [showPagasaLayer, setShowPagasaLayer] = useState(false);
-  const [pagasaData, setPagasaData] = useState(null);
+  const [showTyphoonLayer, setShowTyphoonLayer] = useState(false);
+  const [typhoonData, setTyphoonData] = useState(null);
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
 
@@ -141,10 +141,10 @@ export default function App() {
   }, [showSplash]);
 
   useEffect(() => {
-    if (showPagasaLayer && pagasaData && pagasaData.activeCyclones && pagasaData.activeCyclones.length === 0) {
+    if (showTyphoonLayer && typhoonData && typhoonData.activeCyclones && typhoonData.activeCyclones.length === 0) {
       showToast('Typhoon Tracker: No active storms in the Western Pacific at this time.', false, 'info');
     }
-  }, [showPagasaLayer, pagasaData, showToast]);
+  }, [showTyphoonLayer, typhoonData, showToast]);
 
   const setTheme = useCallback((t) => {
     setThemeState(t);
@@ -243,8 +243,8 @@ export default function App() {
             onRemoveFavorite={handleRemoveFavorite}
             onSetLayerType={setCurrentLayerType}
             onSetFrameIndex={setCurrentFrameIndex}
-            showPagasaLayer={showPagasaLayer}
-            onTogglePagasaLayer={() => setShowPagasaLayer(p => !p)}
+            showTyphoonLayer={showTyphoonLayer}
+            onToggleTyphoonLayer={() => setShowTyphoonLayer(p => !p)}
             showToast={showToast}
           />
           <WeatherMap
@@ -262,9 +262,24 @@ export default function App() {
             onGeoLocate={geoLocate}
             onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             onToggleSidebar={toggleSidebar}
-            showPagasaLayer={showPagasaLayer}
-            onPagasaDataLoaded={setPagasaData}
+            showTyphoonLayer={showTyphoonLayer}
+            onTyphoonDataLoaded={setTyphoonData}
           />
+
+          {/* GDACS Watermark — shown only when Typhoon Tracker is active */}
+          {showTyphoonLayer && (
+            <div 
+              className="absolute bottom-6 left-6 z-[900] pointer-events-none transition-all duration-500"
+              style={{ animation: 'fadeIn 0.5s ease-out' }}
+            >
+              <img 
+                src="/GDACS-Image.jpg" 
+                alt="GDACS Source" 
+                className="h-10 opacity-60 rounded-md grayscale hover:grayscale-0 hover:opacity-100 transition-all shadow-sm"
+                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+              />
+            </div>
+          )}
 
           {/* Floating AI Summary Button — fixed bottom right */}
           {weatherData && (
@@ -344,7 +359,7 @@ export default function App() {
                 weatherData={weatherData}
                 aqiData={aqiData}
                 currentLocation={currentLocation}
-                pagasaData={showPagasaLayer ? pagasaData : null}
+                pagasaData={showTyphoonLayer ? typhoonData : null}
               />
             </div>
           )}

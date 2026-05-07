@@ -39,21 +39,17 @@ function buildSystemContext(weatherData, aqiData, city, pagasaData) {
   const aqi      = aqiData?.current?.us_aqi ?? 'N/A';
   const uv       = aqiData?.current?.uv_index ?? 'N/A';
 
-  let pagasaAlerts = '';
+  let typhoonInfo = '';
   if (pagasaData) {
-    pagasaAlerts = '\nTYPHOON TRACKER (Western Pacific, via GDACS/JTWC):\n';
+    typhoonInfo = '\nTYPHOON TRACKER (Western Pacific, via GDACS/JTWC):\n';
     if (pagasaData.activeCyclones?.length) {
       const c = pagasaData.activeCyclones[0];
-      pagasaAlerts += `- Active Cyclone: ${c.category} ${c.name} (${c.internationalName}), Wind: ${c.windSpeedKmh}km/h.\n`;
-    }
-    if (pagasaData.rainfallAdvisories?.length) {
-      const adv = pagasaData.rainfallAdvisories[0];
-      pagasaAlerts += `- Rainfall Warning: ${adv.level} warning in ${adv.areas.join(', ')}. ${adv.message}\n`;
+      typhoonInfo += `- Active Cyclone: ${c.category} ${c.name} (${c.internationalName}), Wind: ${c.windSpeedKmh}km/h.\n`;
     }
   }
 
   return `You are a weather-only assistant for WeatherScope, currently showing data for ${city}.
-Current conditions: ${temp}°C(feels ${apparent}°C), ${humidity}%RH, wind ${wind}km/h, rain ${rainProb}%, AQI ${aqi}, UV ${uv}.${pagasaAlerts}
+Current conditions: ${temp}°C(feels ${apparent}°C), ${humidity}%RH, wind ${wind}km/h, rain ${rainProb}%, AQI ${aqi}, UV ${uv}.${typhoonInfo}
 
 STRICT RULES — you must follow these without exception:
 1. Only answer questions about weather, climate, forecasts, air quality, UV, wind, outdoor safety, or what to wear/bring based on weather.

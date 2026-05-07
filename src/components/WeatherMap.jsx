@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import L from 'leaflet';
 window.L = L;
 import 'leaflet/dist/leaflet.css';
-import PagasaLayer from './PagasaLayer';
+import TyphoonLayer from './TyphoonLayer';
 import { getWeatherInfo, getTempStyle, getTempColor } from '../utils/weatherCodes';
 import { formatUnixFull } from '../utils/helpers';
 import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
@@ -240,7 +240,7 @@ const WeatherMap = React.memo(function WeatherMap({
   mapRef, theme, currentLayerType, radarFrames, currentFrameIndex,
   weatherData, currentLocation, tempUnit, windUnit, sidebarCollapsed,
   onMapClick, onGeoLocate, onToggleTheme, onToggleSidebar,
-  showPagasaLayer, onPagasaDataLoaded
+  showTyphoonLayer, onTyphoonDataLoaded
 }) {
   const tileUrl = theme === 'light'
     ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
@@ -298,9 +298,9 @@ const WeatherMap = React.memo(function WeatherMap({
           windUnit={windUnit}
         />
 
-        <PagasaLayer
-          visible={showPagasaLayer}
-          onDataLoaded={onPagasaDataLoaded}
+        <TyphoonLayer
+          visible={showTyphoonLayer}
+          onDataLoaded={onTyphoonDataLoaded}
           windUnit={windUnit}
         />
       </MapContainer>

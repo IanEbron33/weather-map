@@ -36,7 +36,7 @@ export default function Sidebar({
   onToggleFavorite, onShareLocation,
   onSelectLocation, onRemoveFavorite,
   onSetLayerType, onSetFrameIndex,
-  showPagasaLayer, onTogglePagasaLayer,
+  showTyphoonLayer, onToggleTyphoonLayer,
   showToast,
 }) {
   const isMobile = useIsMobile();
@@ -131,10 +131,10 @@ export default function Sidebar({
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>WNP Storms · via GDACS/JTWC</span>
           </div>
           <button
-            onClick={onTogglePagasaLayer}
-            className={`w-12 h-6 rounded-full relative transition-colors ${showPagasaLayer ? 'bg-red-500' : 'bg-gray-600'}`}
+            onClick={onToggleTyphoonLayer}
+            className={`w-12 h-6 rounded-full relative transition-colors ${showTyphoonLayer ? 'bg-red-500' : 'bg-gray-600'}`}
           >
-            <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${showPagasaLayer ? 'left-7' : 'left-1'}`} />
+            <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${showTyphoonLayer ? 'left-7' : 'left-1'}`} />
           </button>
         </div>
 

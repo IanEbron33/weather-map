@@ -27,7 +27,7 @@ function mapSeverityToCategory(severityKmh) {
 async function fetchGdacsTrack(eventId, episodeId) {
   try {
     const geoUrl = `https://www.gdacs.org/contentdata/resources/TC/${eventId}/geojson_${eventId}_${episodeId}.geojson`;
-    const res = await fetch(geoUrl, { next: { revalidate: 900 } });
+    const res = await fetch(geoUrl, { next: { revalidate: 1800 } });
     if (!res.ok) return [];
 
     const geoJson = await res.json();

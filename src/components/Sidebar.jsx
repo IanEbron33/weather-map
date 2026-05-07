@@ -10,6 +10,7 @@ import MapLayers from './MapLayers';
 import RadarControls from './RadarControls';
 import Settings from './Settings';
 import BestTime from './BestTime';
+import Skeleton from './Skeleton';
 import { CloudSun } from 'lucide-react';
 
 // Hook that re-evaluates on resize instead of reading window.innerWidth once at render
@@ -103,7 +104,7 @@ export default function Sidebar({
         <SearchBar onSelectLocation={onSelectLocation} showToast={showToast} />
         <Favorites favorites={favorites} onSelectLocation={onSelectLocation} onRemoveFavorite={onRemoveFavorite} />
 
-        {weatherData && (
+        {weatherData ? (
           <>
             <WeatherCard
               weatherData={weatherData}
@@ -120,6 +121,13 @@ export default function Sidebar({
             <HourlyStrip weatherData={weatherData} tempUnit={tempUnit} />
             <ForecastList weatherData={weatherData} tempUnit={tempUnit} />
           </>
+        ) : (
+          <div className="px-6 py-4 flex flex-col gap-4">
+            <Skeleton height="180px" />
+            <Skeleton height="80px" />
+            <Skeleton height="140px" />
+            <Skeleton height="100px" />
+          </div>
         )}
 
         <MapLayers currentLayerType={currentLayerType} onSetLayerType={onSetLayerType} />

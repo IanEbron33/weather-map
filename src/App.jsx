@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import SplashScreen from './components/SplashScreen';
 import Sidebar from './components/Sidebar';
-import WeatherMap from './components/WeatherMap';
 import Toast from './components/Toast';
 import AiSummary from './components/AiSummary';
 import GeminiIcon from './components/GeminiIcon';
 import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeocode } from './utils/api';
 import { isMobile } from './utils/helpers';
 import { X } from 'lucide-react';
+
+const WeatherMap = lazy(() => import('./components/WeatherMap'));
 
 export default function App() {
   const [theme, setThemeState] = useState(() => localStorage.getItem('ws_theme') || 'dark');
@@ -247,24 +248,26 @@ export default function App() {
             onToggleTyphoonLayer={() => setShowTyphoonLayer(p => !p)}
             showToast={showToast}
           />
-          <WeatherMap
-            mapRef={mapRef}
-            theme={theme}
-            currentLayerType={currentLayerType}
-            radarFrames={radarFrames}
-            currentFrameIndex={currentFrameIndex}
-            weatherData={weatherData}
-            currentLocation={currentLocation}
-            tempUnit={tempUnit}
-            windUnit={windUnit}
-            sidebarCollapsed={sidebarCollapsed}
-            onMapClick={handleMapClick}
-            onGeoLocate={geoLocate}
-            onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            onToggleSidebar={toggleSidebar}
-            showTyphoonLayer={showTyphoonLayer}
-            onTyphoonDataLoaded={setTyphoonData}
-          />
+          <Suspense fallback={<div className="absolute inset-0 bg-[var(--bg-primary)] flex items-center justify-center text-[var(--text-muted)]">Loading Map...</div>}>
+            <WeatherMap
+              mapRef={mapRef}
+              theme={theme}
+              currentLayerType={currentLayerType}
+              radarFrames={radarFrames}
+              currentFrameIndex={currentFrameIndex}
+              weatherData={weatherData}
+              currentLocation={currentLocation}
+              tempUnit={tempUnit}
+              windUnit={windUnit}
+              sidebarCollapsed={sidebarCollapsed}
+              onMapClick={handleMapClick}
+              onGeoLocate={geoLocate}
+              onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onToggleSidebar={toggleSidebar}
+              showTyphoonLayer={showTyphoonLayer}
+              onTyphoonDataLoaded={setTyphoonData}
+            />
+          </Suspense>
 
           {/* GDACS Watermark — shown only when Typhoon Tracker is active */}
           {showTyphoonLayer && (

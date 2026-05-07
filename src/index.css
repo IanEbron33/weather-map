@@ -759,6 +759,22 @@ input[type="range"]::-moz-range-thumb {
   to   { transform: rotate(-360deg); }
 }
 
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    rgba(255, 255, 255, 0.05) 50%,
+    var(--bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+}
+
 @keyframes radarRing {
   0%   { transform: scale(1);   opacity: 0.7; }
   100% { transform: scale(3.5); opacity: 0; }

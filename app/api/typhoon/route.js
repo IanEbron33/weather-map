@@ -25,9 +25,15 @@ function mapSeverityToCategory(severityKmh) {
 }
 
 async function fetchGdacsTrack(eventId, episodeId) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
   try {
     const geoUrl = `https://www.gdacs.org/contentdata/resources/TC/${eventId}/geojson_${eventId}_${episodeId}.geojson`;
-    const res = await fetch(geoUrl, { next: { revalidate: 1800 } });
+    const res = await fetch(geoUrl, { 
+      next: { revalidate: 1800 },
+      signal: controller.signal
+    });
     if (!res.ok) return [];
 
     const geoJson = await res.json();
@@ -102,16 +108,23 @@ async function fetchGdacsTrack(eventId, episodeId) {
     return cleanPath;
   } catch {
     return [];
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
 export async function GET() {
-  try {
-    // Fetch live GDACS RSS feed
-    const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
-    const rssRes = await fetch(rssUrl, { next: { revalidate: 900 } });
-    if (!rssRes.ok) throw new Error(`GDACS RSS fetch failed: ${rssRes.status}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s total limit
 
+  try {
+    const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
+    const rssRes = await fetch(rssUrl, { 
+      next: { revalidate: 1800 },
+      signal: controller.signal 
+    });
+    
+    if (!rssRes.ok) throw new Error(`GDACS fetch failed: ${rssRes.status}`);
     const rssText = await rssRes.text();
 
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
@@ -170,20 +183,11 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({
-      activeCyclones,
-      source: 'GDACS / JTWC',
-      timestamp: new Date().toISOString(),
-    });
-
-  } catch (error) {
-    console.error('Typhoon Tracker API Error:', error);
-
-    return NextResponse.json({
-      activeCyclones: [],
-      error: 'Failed to fetch live cyclone data from GDACS.',
-      timestamp: new Date().toISOString(),
-    }, { status: 500 });
+    return NextResponse.json({ activeCyclones });
+  } catch (err) {
+    console.error('[Typhoon API Error]:', err.message);
+    return NextResponse.json({ activeCyclones: [], error: err.message }, { status: 200 });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
-

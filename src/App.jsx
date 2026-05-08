@@ -7,6 +7,7 @@ import GeminiIcon from './components/GeminiIcon';
 import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeocode } from './utils/api';
 import { isMobile } from './utils/helpers';
 import { X } from 'lucide-react';
+import FloatingMapControls from './components/FloatingMapControls';
 
 const WeatherMap = lazy(() => import('./components/WeatherMap'));
 
@@ -268,6 +269,18 @@ export default function App() {
               onTyphoonDataLoaded={setTyphoonData}
             />
           </Suspense>
+
+          {/* Floating Map Controls - Top Right */}
+          <FloatingMapControls
+            currentLayerType={currentLayerType}
+            onSetLayerType={setCurrentLayerType}
+            showTyphoonLayer={showTyphoonLayer}
+            onToggleTyphoonLayer={() => setShowTyphoonLayer(p => !p)}
+            tempUnit={tempUnit}
+            onSetTempUnit={setTempUnit}
+            windUnit={windUnit}
+            onSetWindUnit={setWindUnit}
+          />
 
           {/* GDACS Watermark — shown only when Typhoon Tracker is active */}
           {showTyphoonLayer && (

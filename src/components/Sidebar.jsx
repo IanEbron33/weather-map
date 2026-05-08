@@ -6,9 +6,7 @@ import AirQuality from './AirQuality';
 import HourlyChart from './HourlyChart';
 import HourlyStrip from './HourlyStrip';
 import ForecastList from './ForecastList';
-import MapLayers from './MapLayers';
 import RadarControls from './RadarControls';
-import Settings from './Settings';
 import BestTime from './BestTime';
 import Skeleton from './Skeleton';
 import { CloudSun } from 'lucide-react';
@@ -33,7 +31,6 @@ export default function Sidebar({
   tempUnit, windUnit,
   favorites, isFavorite,
   radarFrames, currentLayerType, currentFrameIndex,
-  onSetTempUnit, onSetWindUnit,
   onToggleFavorite, onShareLocation,
   onSelectLocation, onRemoveFavorite,
   onSetLayerType, onSetFrameIndex,
@@ -130,22 +127,6 @@ export default function Sidebar({
           </div>
         )}
 
-        <MapLayers currentLayerType={currentLayerType} onSetLayerType={onSetLayerType} />
-
-        {/* Typhoon Tracker Toggle */}
-        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="flex flex-col">
-            <span className="font-semibold text-[15px]" style={{ color: 'var(--text-primary)' }}>Typhoon Tracker</span>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>WNP Storms · via GDACS/JTWC</span>
-          </div>
-          <button
-            onClick={onToggleTyphoonLayer}
-            className={`w-12 h-6 rounded-full relative transition-colors ${showTyphoonLayer ? 'bg-red-500' : 'bg-gray-600'}`}
-          >
-            <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${showTyphoonLayer ? 'left-7' : 'left-1'}`} />
-          </button>
-        </div>
-
         {currentLayerType === 'radar' && radarFrames.length > 0 && (
           <RadarControls
             radarFrames={radarFrames}
@@ -153,8 +134,6 @@ export default function Sidebar({
             onSetFrameIndex={onSetFrameIndex}
           />
         )}
-
-        <Settings tempUnit={tempUnit} windUnit={windUnit} onSetTempUnit={onSetTempUnit} onSetWindUnit={onSetWindUnit} />
       </aside>
     </>
   );

@@ -812,6 +812,24 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
 }
 
+/* Premium Map Popups */
+.weather-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.weather-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.weather-popup .leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.9) !important;
+  backdrop-filter: blur(8px);
+}
+
 .typhoon-radar-ring {
   position: absolute;
   width: 48px;

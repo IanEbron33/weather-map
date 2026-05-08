@@ -4,7 +4,7 @@ import L from 'leaflet';
 window.L = L;
 import 'leaflet/dist/leaflet.css';
 import TyphoonLayer from './TyphoonLayer';
-import { getWeatherInfo, getTempStyle, getTempColor } from '../utils/weatherCodes';
+import { getWeatherInfo, getTempStyle, getTempColor, getBackgroundImage } from '../utils/weatherCodes';
 import { formatUnixFull } from '../utils/helpers';
 import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
 
@@ -183,6 +183,8 @@ function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
   const w = getWeatherInfo(c.weather_code, c.is_day);
   const tempColor = getTempColor(c.temperature_2m, tempUnit);
 
+  const bgImage = getBackgroundImage(c.weather_code, c.is_day);
+
   const markerIcon = L.divIcon({
     className: '',
     html: `<div style="width:20px;height:20px;background:#6366f1;border-radius:50%;border:3px solid rgba(255,255,255,0.9);box-shadow:0 0 0 6px rgba(99,102,241,0.3),0 2px 8px rgba(0,0,0,0.3);animation:pulse 2s infinite;"></div>`,
@@ -192,24 +194,41 @@ function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
 
   return (
     <Marker ref={markerRef} position={[location.lat, location.lon]} icon={markerIcon}>
-      <Popup maxWidth={260}>
-        <div style={{ fontFamily: 'Quicksand, sans-serif' }}>
-          <div className="font-bold text-base mb-0.5">{location.city}</div>
-          <div className="text-[28px] font-extrabold" style={{ color: tempColor }}>
-            {Math.round(c.temperature_2m)}{unitSym}
+      <Popup maxWidth={260} className="weather-popup">
+          <div 
+            className="relative overflow-hidden rounded-xl shadow-2xl"
+            style={{ 
+              fontFamily: 'Quicksand, sans-serif',
+              background: bgImage ? `url(${bgImage}) center/cover no-repeat` : 'var(--bg-card)',
+              width: '230px',
+              padding: '16px',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+          >
+            {/* Overlay */}
+            {bgImage && (
+              <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" style={{ zIndex: 0 }} />
+            )}
+  
+            <div className="relative z-[1]">
+              <div className="font-bold text-sm mb-0.5 truncate pr-4">{location.city}</div>
+              <span className="text-3xl font-extrabold mb-1" style={getTempStyle(c.temperature_2m, tempUnit)}>
+                {Math.round(c.temperature_2m)}{unitSym}
+              </span>
+              <div className="text-[12px] capitalize flex items-center gap-1.5 mb-3" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                {(() => {
+                  const IconComp = WeatherIcons[w.icon] || WeatherIcons.HelpCircle;
+                  return <IconComp size={14} />;
+                })()}
+                {w.desc}
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-white/10 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                <span className="flex items-center gap-1">{c.relative_humidity_2m}% Humid</span>
+                <span className="flex items-center gap-1">{c.wind_speed_10m} {wUnit} Wind</span>
+              </div>
+            </div>
           </div>
-          <div className="text-[13px] capitalize flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
-            {(() => {
-              const IconComp = WeatherIcons[w.icon] || WeatherIcons.HelpCircle;
-              return <IconComp size={14} />;
-            })()}
-            {w.desc}
-          </div>
-          <div className="flex gap-4 mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <span>{c.relative_humidity_2m}% Humidity</span>
-            <span>{c.wind_speed_10m} {wUnit} Wind</span>
-          </div>
-        </div>
       </Popup>
     </Marker>
   );

@@ -20,7 +20,7 @@ function mapSeverityToCategory(severityKmh) {
   if (severityKmh >= 220) return 'Super Typhoon';
   if (severityKmh >= 150) return 'Typhoon';
   if (severityKmh >= 100) return 'Severe Tropical Storm';
-  if (severityKmh >= 62)  return 'Tropical Storm';
+  if (severityKmh >= 62) return 'Tropical Storm';
   return 'Tropical Depression';
 }
 
@@ -30,7 +30,7 @@ async function fetchGdacsTrack(eventId, episodeId) {
 
   try {
     const geoUrl = `https://www.gdacs.org/contentdata/resources/TC/${eventId}/geojson_${eventId}_${episodeId}.geojson`;
-    const res = await fetch(geoUrl, { 
+    const res = await fetch(geoUrl, {
       next: { revalidate: 1800 },
       signal: controller.signal
     });
@@ -47,15 +47,15 @@ async function fetchGdacsTrack(eventId, episodeId) {
 
       const props = feature.properties || {};
       const [lon, lat] = geom.coordinates;
-      
+
       // Filter by source to avoid "braiding" multiple models
       // We prioritize JTWC or the first major source found
       const source = (props.source || props.model || '').toUpperCase();
       if (source && source !== 'JTWC' && source !== 'GDACS') {
         // If we have JTWC data, skip other sources like 'ENSEMBLE' or 'ECM'
         // to keep the line single and clean.
-        if (geoJson.features.some(f => (f.properties.source||'').toUpperCase() === 'JTWC')) {
-           continue;
+        if (geoJson.features.some(f => (f.properties.source || '').toUpperCase() === 'JTWC')) {
+          continue;
         }
       }
 
@@ -93,11 +93,11 @@ async function fetchGdacsTrack(eventId, episodeId) {
 
     for (const pt of trackPoints) {
       const hourKey = Math.floor(pt.timestamp / (3600 * 1000));
-      
+
       if (!seenHours.has(hourKey)) {
         // Also ensure we don't have exact coordinate duplicates
         const isDuplicateCoord = cleanPath.some(cp => cp.lat === pt.lat && cp.lon === pt.lon);
-        
+
         if (!isDuplicateCoord) {
           cleanPath.push(pt);
           seenHours.add(hourKey);
@@ -119,11 +119,11 @@ export async function GET() {
 
   try {
     const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
-    const rssRes = await fetch(rssUrl, { 
+    const rssRes = await fetch(rssUrl, {
       next: { revalidate: 1800 },
-      signal: controller.signal 
+      signal: controller.signal
     });
-    
+
     if (!rssRes.ok) throw new Error(`GDACS fetch failed: ${rssRes.status}`);
     const rssText = await rssRes.text();
 
@@ -146,7 +146,7 @@ export async function GET() {
       if (!isInWesternPacific(lat, lon)) continue;
 
       const eventName = (itemXml.match(/<gdacs:eventname>(.*?)<\/gdacs:eventname>/) || [])[1] || 'Unknown';
-      const eventId   = (itemXml.match(/<gdacs:eventid>(.*?)<\/gdacs:eventid>/) || [])[1] || '';
+      const eventId = (itemXml.match(/<gdacs:eventid>(.*?)<\/gdacs:eventid>/) || [])[1] || '';
       const episodeId = (itemXml.match(/<gdacs:episodeid>(.*?)<\/gdacs:episodeid>/) || [])[1] || '1';
       const severityVal = parseFloat((itemXml.match(/<gdacs:severity[^>]*value="([^"]*)"/) || [])[1] || '0');
       const alertLevel = (itemXml.match(/<gdacs:alertlevel>(.*?)<\/gdacs:alertlevel>/) || [])[1] || 'Green';
@@ -156,18 +156,18 @@ export async function GET() {
 
       // Find the point in the track closest to 'Now' (RSS time)
       // or simply add the RSS point to the track if it's missing.
-      const nowPoint = { 
-        lat, 
-        lon, 
-        time: 'Now', 
-        timestamp: Date.now(), 
-        isCurrent: true 
+      const nowPoint = {
+        lat,
+        lon,
+        time: 'Now',
+        timestamp: Date.now(),
+        isCurrent: true
       };
 
       // Merge: Keep historical points before now, add now, then forecast points
       const history = projectedPath.filter(p => !p.isForecast);
       const forecast = projectedPath.filter(p => p.isForecast);
-      
+
       const finalPath = [...history, nowPoint, ...forecast];
 
       activeCyclones.push({

@@ -35,6 +35,26 @@ export function getWeatherInfo(code, isDay) {
   return { desc: info.desc, icon: isDay ? info.icon : info.night, type: info.type };
 }
 
+export function getBackgroundImage(code, isDay) {
+  const timeSfx = isDay ? 'day' : 'night';
+  
+  if (code === 0) return `/weather-image/clear-and-mainly/clear-sky-${timeSfx}.webp`;
+  if (code === 1) return `/weather-image/clear-and-mainly/mainly-clear-${timeSfx}.webp`;
+  if (code === 2) return `/weather-image/partly-overcast-foggy/partly-cloudy-${timeSfx}.webp`;
+  if (code === 3) return `/weather-image/partly-overcast-foggy/overcast-${timeSfx}.webp`;
+  if (code === 45 || code === 48) return `/weather-image/partly-overcast-foggy/foggy-${timeSfx}.webp`;
+  
+  // Snow Logic (Must be before general Rain/Storm checks to catch 85/86)
+  if (code === 71 || code === 73 || code === 85) return '/weather-image/snow/slight-snow.webp';
+  if (code === 75 || code === 77 || code === 86) return '/weather-image/snow/heavy-snowfall.webp';
+
+  if (code >= 51 && code <= 61) return `/weather-image/drizzle-rain-lightning/drizzle-${timeSfx}.webp`;
+  if (code >= 63 && code <= 81) return `/weather-image/drizzle-rain-lightning/rain-${timeSfx}.webp`;
+  if (code >= 82 || code >= 95) return '/weather-image/drizzle-rain-lightning/thunderstorm-day-and-night.webp';
+  
+  return '';
+}
+
 // ===== AQI Levels =====
 export function getAqiInfo(aqi) {
   if (aqi <= 50)  return { label: 'Good',                   desc: 'Air quality is satisfactory',      cls: 'aqi-good' };
@@ -68,7 +88,7 @@ export function getTempStyle(val, unit) {
   else                  grad = 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)';
 
   return {
-    background: grad,
+    backgroundImage: grad,
     WebkitBackgroundClip: 'text',
     backgroundClip: 'text',
     WebkitTextFillColor: 'transparent',

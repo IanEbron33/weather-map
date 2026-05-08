@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
+import { getWeatherInfo, getTempColor, getBackgroundImage, getTempStyle } from '../utils/weatherCodes';
 import WeatherAnimation from './WeatherAnimation';
 import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
 
@@ -19,6 +19,10 @@ export default function WeatherCard({
   );
   const tempColor = useMemo(
     () => weatherData ? getTempColor(weatherData.current.temperature_2m, tempUnit) : null,
+    [weatherData, tempUnit]
+  );
+  const tempStyle = useMemo(
+    () => weatherData ? getTempStyle(weatherData.current.temperature_2m, tempUnit) : null,
     [weatherData, tempUnit]
   );
   const sunrise = useMemo(() => {
@@ -44,6 +48,11 @@ export default function WeatherCard({
   return `${(vis / 1000).toFixed(1)} km`;
 }, [weatherData]);
 
+  const bgImage = useMemo(() => {
+    if (!weatherData) return '';
+    return getBackgroundImage(weatherData.current.weather_code, weatherData.current.is_day);
+  }, [weatherData]);
+
   // Early return is now AFTER all hooks
   if (!weatherData) return null;
 
@@ -55,11 +64,18 @@ export default function WeatherCard({
       style={{
         border: '1px solid var(--border)',
         animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        background: bgImage ? `url(${bgImage}) center/cover no-repeat` : 'var(--bg-card)',
+        transition: 'background-image 0.5s ease-in-out',
       }}
     >
+      {/* Visual Overlay for readability */}
+      {bgImage && (
+        <div className="absolute inset-0 z-0 bg-black/10" />
+      )}
+      
       <WeatherAnimation code={c.weather_code} isDay={c.is_day} />
 
-      <div className="relative z-[1] p-6 max-md:p-4">
+      <div className="relative z-[1] p-6 max-md:p-4 text-white">
         <div className="flex justify-between items-start mb-2">
           <div>
             <div className="flex items-center gap-2">
@@ -112,10 +128,10 @@ export default function WeatherCard({
         </div>
 
         <div className="flex items-baseline gap-3 mb-5">
-          <span className="text-5xl font-extrabold tracking-tight max-md:text-[42px]" style={{ color: tempColor }}>
+          <span className="text-5xl font-extrabold tracking-tight max-md:text-[42px]" style={tempStyle}>
             {Math.round(c.temperature_2m)}{unitSym}
           </span>
-          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
             Feels like {Math.round(c.apparent_temperature)}{unitSym}
           </span>
         </div>
@@ -133,12 +149,13 @@ export default function WeatherCard({
               key={d.label}
               className="flex flex-col gap-1 p-2.5 rounded-lg max-md:p-2"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.04)',
+                background: bgImage ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.03)',
+                border: bgImage ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.04)',
+                backdropFilter: bgImage ? 'blur(4px)' : 'none',
               }}
             >
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{d.label}</span>
-              <span className="text-[15px] font-semibold max-md:text-sm">{d.value}</span>
+              <span className="text-xs" style={{ color: bgImage ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}>{d.label}</span>
+              <span className="text-[15px] font-semibold max-md:text-sm" style={{ color: '#fff' }}>{d.value}</span>
             </div>
           ))}
         </div>

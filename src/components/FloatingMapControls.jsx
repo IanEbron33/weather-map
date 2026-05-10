@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { Layers, CloudRain, Satellite, Wind, Thermometer, Map, Tornado } from 'lucide-react';
+import { Layers, CloudRain, Satellite, Wind, Thermometer, Map, Tornado, Activity } from 'lucide-react';
 
-export default function FloatingMapControls({ 
-  currentLayerType, 
-  onSetLayerType, 
-  showTyphoonLayer, 
+export default function FloatingMapControls({
+  currentLayerType,
+  onSetLayerType,
+  showTyphoonLayer,
   onToggleTyphoonLayer,
   tempUnit,
   onSetTempUnit,
   windUnit,
-  onSetWindUnit
+  onSetWindUnit,
+  showWindParticles,
+  setShowWindParticles
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -34,16 +36,15 @@ export default function FloatingMapControls({
   }, []);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="fixed z-[1001] flex items-start gap-2 transition-all duration-300 max-md:top-20 max-md:right-4"
       style={{ top: '24px', right: '24px' }}
     >
       {/* Pop-out Menu */}
-      <div 
-        className={`flex flex-col gap-1 transition-all duration-300 origin-top-right overflow-hidden ${
-          isOpen ? 'opacity-100 scale-100 w-[200px] h-auto p-3 pointer-events-auto' : 'opacity-0 scale-95 w-0 h-0 p-0 pointer-events-none'
-        }`}
+      <div
+        className={`flex flex-col gap-1 transition-all duration-300 origin-top-right overflow-hidden ${isOpen ? 'opacity-100 scale-100 w-[200px] h-auto p-3 pointer-events-auto' : 'opacity-0 scale-95 w-0 h-0 p-0 pointer-events-none'
+          }`}
         style={{
           background: 'var(--bg-card)',
           border: isOpen ? '1px solid var(--border)' : 'none',
@@ -62,7 +63,10 @@ export default function FloatingMapControls({
           return (
             <button
               key={layer.id}
-              onClick={() => onSetLayerType(layer.id)}
+              onClick={() => {
+                onSetLayerType(layer.id);
+                setTimeout(() => setIsOpen(false), 200);
+              }}
               className="flex items-center gap-3 py-2 px-3 rounded-xl text-sm font-medium transition-all"
               style={{
                 background: isActive ? 'var(--accent-glow)' : 'transparent',
@@ -83,6 +87,32 @@ export default function FloatingMapControls({
             </button>
           );
         })}
+
+        <div className="my-1 border-t" style={{ borderColor: 'var(--border)' }}></div>
+
+        <button
+          onClick={() => {
+            setShowWindParticles(!showWindParticles);
+            setTimeout(() => setIsOpen(false), 200);
+          }}
+          className="flex items-center gap-3 py-2 px-3 rounded-xl text-sm font-medium transition-all"
+          style={{
+            background: showWindParticles ? 'var(--accent-glow)' : 'transparent',
+            color: showWindParticles ? 'var(--text-primary)' : 'var(--text-secondary)',
+          }}
+          onMouseEnter={(e) => {
+            if (!showWindParticles) e.currentTarget.style.background = 'var(--bg-card-hover)';
+          }}
+          onMouseLeave={(e) => {
+            if (!showWindParticles) e.currentTarget.style.background = 'transparent';
+          }}
+        >
+          <span style={{ color: showWindParticles ? 'var(--accent)' : 'inherit' }}><Activity size={16} /></span>
+          Wind Particles
+          {showWindParticles && (
+            <div className="ml-auto w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} />
+          )}
+        </button>
 
         <div className="w-full h-[1px] my-2" style={{ background: 'var(--border)' }} />
 
@@ -113,7 +143,7 @@ export default function FloatingMapControls({
         <span className="text-xs font-semibold uppercase tracking-wider mb-2 ml-1" style={{ color: 'var(--text-secondary)' }}>
           Units
         </span>
-        
+
         <div className="flex flex-col gap-2 px-1">
           {/* Temp Unit */}
           <div className="flex items-center justify-between">

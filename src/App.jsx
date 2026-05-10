@@ -31,6 +31,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [showAiPanel, setShowAiPanel] = useState(false);
   const [showTyphoonLayer, setShowTyphoonLayer] = useState(false);
+  const [showWindParticles, setShowWindParticles] = useState(false);
   const [typhoonData, setTyphoonData] = useState(null);
   const [showPagasaBulletin, setShowPagasaBulletin] = useState(false);
   const mapRef = useRef(null);
@@ -268,8 +269,10 @@ export default function App() {
               onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               onToggleSidebar={toggleSidebar}
               showTyphoonLayer={showTyphoonLayer}
+              typhoonData={typhoonData}
               onTyphoonDataLoaded={setTyphoonData}
               onOpenBulletin={() => setShowPagasaBulletin(true)}
+              showWindParticles={showWindParticles}
             />
           </Suspense>
 
@@ -283,6 +286,8 @@ export default function App() {
             onSetTempUnit={setTempUnit}
             windUnit={windUnit}
             onSetWindUnit={setWindUnit}
+            showWindParticles={showWindParticles}
+            setShowWindParticles={setShowWindParticles}
           />
 
           {/* GDACS Watermark — shown only when Typhoon Tracker is active */}

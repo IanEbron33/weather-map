@@ -432,13 +432,28 @@ html.light-mode .snowflake {
 }
 
 /* ===== Leaflet Overrides ===== */
-.leaflet-tile-pane {
+.base-map-tiles {
   filter: brightness(0.85) contrast(1.1);
+  transition: filter 0.3s ease;
 }
 
-html.light-mode .leaflet-tile-pane {
+html.light-mode main:not(.weather-layer-active) .base-map-tiles {
   /* Reduce harsh white glare and add a very subtle sage/warm tint to match the UI */
   filter: brightness(0.95) contrast(1.05) sepia(0.1) hue-rotate(40deg);
+}
+
+main.weather-layer-active .base-map-tiles {
+  /* Provide a neutral base map when weather layers are on */
+  filter: brightness(0.9) contrast(1.1) grayscale(80%);
+}
+
+.vibrant-temp-layer {
+  opacity: 0.88 !important;
+  filter: saturate(1.6) contrast(1.15) brightness(1.05) !important;
+}
+
+.vibrant-wind-layer {
+  filter: saturate(2) brightness(1.3) contrast(1.2) !important;
 }
 
 .leaflet-control-zoom {
@@ -610,6 +625,14 @@ html.light-mode .leaflet-control-attribution {
   width: 100%;
   border-radius: 4px;
   background: linear-gradient(to right, #60a5fa, #38bdf8, #4ade80, #facc15, #fb923c, #f87171);
+}
+
+/* ===== Wind Velocity Legend Gradient ===== */
+.wind-gradient {
+  height: 8px;
+  width: 100%;
+  border-radius: 4px;
+  background: linear-gradient(to right, #00ffff, #00ffaa, #00ff00, #aaff00, #ffff00, #ffaa00, #ff5500, #ff0000, #ff00ff);
 }
 
 /* ===== Range Slider ===== */
@@ -879,8 +902,13 @@ input[type="range"]::-moz-range-thumb {
   animation: slideDownWarning 0.4s ease-out forwards;
 }
 
-/* Make country labels pop in dark mode */
+/* Clean dark shadow for labels so they don't glow */
 .highlighted-map-labels {
-  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4)) brightness(1.6) contrast(1.3) saturate(1.5);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
   pointer-events: none; /* Let clicks pass through to the map */
+}
+
+/* When overlays are active, make labels cut through the heatmap cleanly */
+main.weather-layer-active .highlighted-map-labels {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 1));
 }

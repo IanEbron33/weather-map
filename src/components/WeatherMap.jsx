@@ -259,7 +259,7 @@ const WeatherMap = React.memo(function WeatherMap({
   mapRef, theme, currentLayerType, radarFrames, currentFrameIndex,
   weatherData, currentLocation, tempUnit, windUnit, sidebarCollapsed,
   onMapClick, onGeoLocate, onToggleTheme, onToggleSidebar,
-  showTyphoonLayer, onTyphoonDataLoaded
+  showTyphoonLayer, onTyphoonDataLoaded, onOpenBulletin
 }) {
   const tileUrl = theme === 'light'
     ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
@@ -321,6 +321,7 @@ const WeatherMap = React.memo(function WeatherMap({
           visible={showTyphoonLayer}
           onDataLoaded={onTyphoonDataLoaded}
           windUnit={windUnit}
+          onOpenBulletin={onOpenBulletin}
         />
       </MapContainer>
 

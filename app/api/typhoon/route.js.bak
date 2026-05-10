@@ -21,78 +21,7 @@ function mapSeverityToCategory(severityKmh) {
   if (severityKmh >= 150) return 'Typhoon';
   if (severityKmh >= 100) return 'Severe Tropical Storm';
   if (severityKmh >= 62) return 'Tropical Storm';
-  if (severityKmh >= 62) return 'Tropical Storm';
   return 'Tropical Depression';
-}
-
-/**
- * Calculate distance between two lat/lon points in km (Haversine formula)
- */
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-/**
- * Extract the local name from a PAGASA title like 'Tropical Depression "Caloy"'
- */
-function extractLocalName(title) {
-  if (!title) return '';
-  const match = title.match(/[""\u201C\u201D]([^""\u201C\u201D]+)[""\u201C\u201D]/);
-  return match ? match[1] : title;
-}
-
-/**
- * Match PAGASA bulletins to GDACS cyclones by coordinate proximity.
- */
-function matchPagasaToGdacs(gdacsCyclones, pagasaBulletins) {
-  if (!pagasaBulletins || pagasaBulletins.length === 0) return gdacsCyclones;
-
-  return gdacsCyclones.map(cyclone => {
-    let bestMatch = null;
-    let bestDist = Infinity;
-
-    for (const bulletin of pagasaBulletins) {
-      if (!bulletin.coordinates) continue;
-      const dist = haversineKm(
-        cyclone.currentLocation.lat, cyclone.currentLocation.lon,
-        bulletin.coordinates.lat, bulletin.coordinates.lon
-      );
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestMatch = bulletin;
-      }
-    }
-
-    if (bestMatch && bestDist < 500) {
-      return {
-        ...cyclone,
-        pagasa: {
-          localName: extractLocalName(bestMatch.title),
-          title: bestMatch.title,
-          issuedAt: bestMatch.issuedAt,
-          summary: bestMatch.summary,
-          maxWinds: bestMatch.maxWinds,
-          gustiness: bestMatch.gustiness,
-          movement: bestMatch.movement,
-          currentPosition: bestMatch.currentPosition,
-          trackOutlook: bestMatch.trackOutlook,
-          forecastPositions: bestMatch.forecastPositions || [],
-          trackImageUrl: bestMatch.trackImageUrl,
-          bulletinPdfs: bestMatch.bulletinPdfs || [],
-          coordinates: bestMatch.coordinates,
-          matchDistance: Math.round(bestDist),
-        },
-      };
-    }
-
-    return cyclone;
-  });
 }
 
 async function fetchGdacsTrack(eventId, episodeId) {
@@ -184,27 +113,19 @@ async function fetchGdacsTrack(eventId, episodeId) {
   }
 }
 
-export async function GET(request) {
+export async function GET() {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s total limit
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s total limit
 
   try {
-    // 1. Start fetching GDACS RSS
     const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
-    const rssPromise = fetch(rssUrl, {
+    const rssRes = await fetch(rssUrl, {
       next: { revalidate: 1800 },
       signal: controller.signal
-    }).then(res => {
-      if (!res.ok) throw new Error(`GDACS fetch failed: ${res.status}`);
-      return res.text();
     });
 
-    // 2. Start fetching PAGASA data concurrently
-    const pagasaPromise = fetch(new URL('/api/pagasa-bulletin', request.url), {
-      next: { revalidate: 1800 }
-    }).then(res => res.ok ? res.json() : { bulletins: [] }).catch(() => ({ bulletins: [] }));
-
-    const [rssText, pagasaData] = await Promise.all([rssPromise, pagasaPromise]);
+    if (!rssRes.ok) throw new Error(`GDACS fetch failed: ${rssRes.status}`);
+    const rssText = await rssRes.text();
 
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     const activeCyclones = [];
@@ -262,13 +183,7 @@ export async function GET(request) {
       });
     }
 
-    const enrichedCyclones = matchPagasaToGdacs(activeCyclones, pagasaData.bulletins || []);
-
-    return NextResponse.json({ 
-      activeCyclones: enrichedCyclones,
-      pagasaSource: pagasaData.source || null,
-      pagasaScrapedAt: pagasaData.scrapedAt || null,
-    });
+    return NextResponse.json({ activeCyclones });
   } catch (err) {
     console.error('[Typhoon API Error]:', err.message);
     return NextResponse.json({ activeCyclones: [], error: err.message }, { status: 200 });

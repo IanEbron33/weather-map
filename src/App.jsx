@@ -4,9 +4,10 @@ import Sidebar from './components/Sidebar';
 import Toast from './components/Toast';
 import AiSummary from './components/AiSummary';
 import GeminiIcon from './components/GeminiIcon';
+import PagasaBulletin from './components/PagasaBulletin';
 import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeocode } from './utils/api';
 import { isMobile } from './utils/helpers';
-import { X } from 'lucide-react';
+import { X, CloudLightning } from 'lucide-react';
 import FloatingMapControls from './components/FloatingMapControls';
 
 const WeatherMap = lazy(() => import('./components/WeatherMap'));
@@ -31,6 +32,7 @@ export default function App() {
   const [showAiPanel, setShowAiPanel] = useState(false);
   const [showTyphoonLayer, setShowTyphoonLayer] = useState(false);
   const [typhoonData, setTyphoonData] = useState(null);
+  const [showPagasaBulletin, setShowPagasaBulletin] = useState(false);
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
 
@@ -267,6 +269,7 @@ export default function App() {
               onToggleSidebar={toggleSidebar}
               showTyphoonLayer={showTyphoonLayer}
               onTyphoonDataLoaded={setTyphoonData}
+              onOpenBulletin={() => setShowPagasaBulletin(true)}
             />
           </Suspense>
 
@@ -296,6 +299,42 @@ export default function App() {
               />
             </div>
           )}
+
+          {/* PAGASA Bulletin Toggle Button — shown when typhoon layer is active */}
+          {showTyphoonLayer && (
+            <button
+              id="pagasa-bulletin-btn"
+              onClick={() => setShowPagasaBulletin(p => !p)}
+              className="fixed z-[1002] flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all hover:scale-105 active:scale-95"
+              style={{
+                bottom: '24px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: showPagasaBulletin
+                  ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                  : 'var(--bg-card)',
+                border: showPagasaBulletin
+                  ? '1px solid rgba(239,68,68,0.6)'
+                  : '1px solid var(--border)',
+                backdropFilter: 'blur(12px)',
+                color: showPagasaBulletin ? 'white' : 'var(--text-primary)',
+                boxShadow: showPagasaBulletin
+                  ? '0 8px 32px rgba(239,68,68,0.4)'
+                  : '0 8px 32px rgba(0,0,0,0.2)',
+                animation: 'fadeIn 0.4s ease-out',
+                display: showPagasaBulletin ? 'none' : 'flex',
+              }}
+            >
+              <CloudLightning size={15} />
+              PAGASA Bulletin
+            </button>
+          )}
+
+          {/* PAGASA Bulletin Panel */}
+          <PagasaBulletin
+            visible={showPagasaBulletin && showTyphoonLayer}
+            onClose={() => setShowPagasaBulletin(false)}
+          />
 
           {/* Floating AI Summary Button — fixed bottom right */}
           {weatherData && (

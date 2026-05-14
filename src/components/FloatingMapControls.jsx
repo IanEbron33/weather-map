@@ -24,7 +24,6 @@ export default function FloatingMapControls({
     { id: 'satellite', icon: <Satellite size={16} />, label: 'Satellite' },
   ];
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -41,20 +40,18 @@ export default function FloatingMapControls({
       className="fixed z-[1001] flex items-start gap-2 transition-all duration-300 max-md:top-20 max-md:right-4"
       style={{ top: '24px', right: '24px' }}
     >
-      {/* Pop-out Menu */}
       <div
-        className={`flex flex-col gap-1 transition-all duration-300 origin-top-right overflow-hidden ${isOpen ? 'opacity-100 scale-100 w-[200px] h-auto p-3 pointer-events-auto' : 'opacity-0 scale-95 w-0 h-0 p-0 pointer-events-none'
-          }`}
+        className={`flex flex-col gap-1 transition-all duration-300 origin-top-right overflow-hidden ${isOpen ? 'opacity-100 scale-100 w-[200px] h-auto p-3 pointer-events-auto' : 'opacity-0 scale-95 w-0 h-0 p-0 pointer-events-none'}`}
         style={{
-          background: 'var(--bg-card)',
-          border: isOpen ? '1px solid var(--border)' : 'none',
+          background: 'rgba(91, 57, 35, 0.97)',
+          border: isOpen ? '1px solid rgba(185, 151, 91, 0.42)' : 'none',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderRadius: '16px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          boxShadow: '0 16px 48px rgba(59,36,19,0.28)',
         }}
       >
-        <span className="text-xs font-semibold uppercase tracking-wider mb-2 ml-1" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-xs font-semibold uppercase tracking-wider mb-2 ml-1" style={{ color: '#f3e7c8' }}>
           Map Layers
         </span>
 
@@ -69,26 +66,26 @@ export default function FloatingMapControls({
               }}
               className="flex items-center gap-3 py-2 px-3 rounded-xl text-sm font-medium transition-all"
               style={{
-                background: isActive ? 'var(--accent-glow)' : 'transparent',
-                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                background: isActive ? 'rgba(231, 214, 173, 0.12)' : 'transparent',
+                color: isActive ? '#fff8e8' : '#f3e7c8',
               }}
               onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = 'var(--bg-card-hover)';
+                if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
               }}
               onMouseLeave={(e) => {
                 if (!isActive) e.currentTarget.style.background = 'transparent';
               }}
             >
-              <span style={{ color: isActive ? 'var(--accent)' : 'inherit' }}>{layer.icon}</span>
+              <span style={{ color: isActive ? '#f8f1e5' : 'inherit' }}>{layer.icon}</span>
               {layer.label}
               {isActive && (
-                <div className="ml-auto w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} />
+                <div className="ml-auto w-2 h-2 rounded-full" style={{ background: '#e7d7b4' }} />
               )}
             </button>
           );
         })}
 
-        <div className="my-1 border-t" style={{ borderColor: 'var(--border)' }}></div>
+        <div className="my-1 border-t" style={{ borderColor: 'rgba(185, 151, 91, 0.35)' }} />
 
         <button
           onClick={() => {
@@ -97,106 +94,108 @@ export default function FloatingMapControls({
           }}
           className="flex items-center gap-3 py-2 px-3 rounded-xl text-sm font-medium transition-all"
           style={{
-            background: showWindParticles ? 'var(--accent-glow)' : 'transparent',
-            color: showWindParticles ? 'var(--text-primary)' : 'var(--text-secondary)',
+            background: showWindParticles ? 'rgba(231, 214, 173, 0.12)' : 'transparent',
+            color: showWindParticles ? '#fff8e8' : '#f3e7c8',
           }}
           onMouseEnter={(e) => {
-            if (!showWindParticles) e.currentTarget.style.background = 'var(--bg-card-hover)';
+            if (!showWindParticles) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
           }}
           onMouseLeave={(e) => {
             if (!showWindParticles) e.currentTarget.style.background = 'transparent';
           }}
         >
-          <span style={{ color: showWindParticles ? 'var(--accent)' : 'inherit' }}><Activity size={16} /></span>
+          <span style={{ color: showWindParticles ? '#f8f1e5' : 'inherit' }}><Activity size={16} /></span>
           Wind Particles
           {showWindParticles && (
-            <div className="ml-auto w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} />
+            <div className="ml-auto w-2 h-2 rounded-full" style={{ background: '#e7d7b4' }} />
           )}
         </button>
 
-        <div className="w-full h-[1px] my-2" style={{ background: 'var(--border)' }} />
+        <div className="w-full h-[1px] my-2" style={{ background: 'rgba(185, 151, 91, 0.35)' }} />
 
-        {/* Typhoon Tracker Toggle */}
         <button
           onClick={onToggleTyphoonLayer}
           className="flex items-center justify-between py-2 px-3 rounded-xl text-sm font-medium transition-all w-full"
-          style={{ background: showTyphoonLayer ? 'rgba(239, 68, 68, 0.1)' : 'transparent' }}
+          style={{ background: showTyphoonLayer ? 'rgba(231, 214, 173, 0.12)' : 'transparent' }}
           onMouseEnter={(e) => {
-            if (!showTyphoonLayer) e.currentTarget.style.background = 'var(--bg-card-hover)';
+            if (!showTyphoonLayer) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
           }}
           onMouseLeave={(e) => {
             if (!showTyphoonLayer) e.currentTarget.style.background = 'transparent';
           }}
         >
-          <div className="flex items-center gap-3" style={{ color: showTyphoonLayer ? '#ef4444' : 'var(--text-secondary)' }}>
+          <div className="flex items-center gap-3" style={{ color: showTyphoonLayer ? '#fff8e8' : '#f3e7c8' }}>
             <Tornado size={16} />
             Typhoons
           </div>
-          <div className={`w-9 h-5 rounded-full relative transition-colors ${showTyphoonLayer ? 'bg-red-500' : 'bg-gray-600'}`}>
-            <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] transition-all ${showTyphoonLayer ? 'left-5' : 'left-1'}`} />
+          <div className={`w-9 h-5 rounded-full relative transition-colors ${showTyphoonLayer ? 'bg-[#e7d7b4]' : 'bg-[#3f2a18]'}`}>
+            <div className={`w-3.5 h-3.5 rounded-full bg-[#fff8e8] absolute top-[3px] transition-all ${showTyphoonLayer ? 'left-5' : 'left-1'}`} />
           </div>
         </button>
 
-        <div className="w-full h-[1px] my-2" style={{ background: 'var(--border)' }} />
+        <div className="w-full h-[1px] my-2" style={{ background: 'rgba(185, 151, 91, 0.35)' }} />
 
-        {/* Units Section */}
-        <span className="text-xs font-semibold uppercase tracking-wider mb-2 ml-1" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-xs font-semibold uppercase tracking-wider mb-2 ml-1" style={{ color: '#f3e7c8' }}>
           Units
         </span>
 
         <div className="flex flex-col gap-2 px-1">
-          {/* Temp Unit */}
           <div className="flex items-center justify-between">
-            <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>Temp</span>
-            <div className="flex rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-input)]">
+            <span className="text-[13px]" style={{ color: '#e7d7b4' }}>Temp</span>
+            <div className="flex rounded-lg overflow-hidden border border-[rgba(185,151,91,0.35)] bg-[rgba(255,255,255,0.08)]">
               <button
                 onClick={() => onSetTempUnit('celsius')}
-                className={`px-2 py-1 text-[11px] font-bold transition-all ${tempUnit === 'celsius' ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)]'}`}
-              >°C</button>
+                className={`px-2 py-1 text-[11px] font-bold transition-all ${tempUnit === 'celsius' ? 'bg-[#e7d7b4] text-[#4b2f1d]' : 'text-[#f3e7c8]'}`}
+              >
+                Â°C
+              </button>
               <button
                 onClick={() => onSetTempUnit('fahrenheit')}
-                className={`px-2 py-1 text-[11px] font-bold transition-all ${tempUnit === 'fahrenheit' ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)]'}`}
-              >°F</button>
+                className={`px-2 py-1 text-[11px] font-bold transition-all ${tempUnit === 'fahrenheit' ? 'bg-[#e7d7b4] text-[#4b2f1d]' : 'text-[#f3e7c8]'}`}
+              >
+                Â°F
+              </button>
             </div>
           </div>
 
-          {/* Wind Unit */}
           <div className="flex items-center justify-between">
-            <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>Wind</span>
-            <div className="flex rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-input)]">
+            <span className="text-[13px]" style={{ color: '#e7d7b4' }}>Wind</span>
+            <div className="flex rounded-lg overflow-hidden border border-[rgba(185,151,91,0.35)] bg-[rgba(255,255,255,0.08)]">
               <button
                 onClick={() => onSetWindUnit('kmh')}
-                className={`px-2 py-1 text-[11px] font-bold transition-all ${windUnit === 'kmh' ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)]'}`}
-              >km/h</button>
+                className={`px-2 py-1 text-[11px] font-bold transition-all ${windUnit === 'kmh' ? 'bg-[#e7d7b4] text-[#4b2f1d]' : 'text-[#f3e7c8]'}`}
+              >
+                km/h
+              </button>
               <button
                 onClick={() => onSetWindUnit('mph')}
-                className={`px-2 py-1 text-[11px] font-bold transition-all ${windUnit === 'mph' ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)]'}`}
-              >mph</button>
+                className={`px-2 py-1 text-[11px] font-bold transition-all ${windUnit === 'mph' ? 'bg-[#e7d7b4] text-[#4b2f1d]' : 'text-[#f3e7c8]'}`}
+              >
+                mph
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all shadow-md active:scale-95"
         style={{
-          background: isOpen ? 'var(--accent-primary)' : 'var(--bg-card)',
-          border: isOpen ? '1px solid var(--accent-primary)' : '1px solid var(--border)',
-          color: isOpen ? 'white' : 'var(--text-primary)',
+          background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
+          border: '1px solid rgba(185,151,91,0.5)',
+          color: '#fff8e8',
           backdropFilter: 'blur(12px)',
         }}
         onMouseEnter={(e) => {
-          if (!isOpen) e.currentTarget.style.background = 'var(--bg-card-hover)';
+          if (!isOpen) e.currentTarget.style.background = 'linear-gradient(135deg, #6b4528 0%, #8a603c 100%)';
         }}
         onMouseLeave={(e) => {
-          if (!isOpen) e.currentTarget.style.background = 'var(--bg-card)';
+          if (!isOpen) e.currentTarget.style.background = 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)';
         }}
       >
         <Layers size={20} />
       </button>
-
     </div>
   );
 }

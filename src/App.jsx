@@ -319,16 +319,16 @@ export default function App() {
                 left: '50%',
                 transform: 'translateX(-50%)',
                 background: showPagasaBulletin
-                  ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-                  : 'var(--bg-card)',
+                  ? 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)'
+                  : 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
                 border: showPagasaBulletin
-                  ? '1px solid rgba(239,68,68,0.6)'
-                  : '1px solid var(--border)',
+                  ? '1px solid rgba(185,151,91,0.5)'
+                  : '1px solid rgba(185,151,91,0.5)',
                 backdropFilter: 'blur(12px)',
-                color: showPagasaBulletin ? 'white' : 'var(--text-primary)',
+                color: '#fff8e8',
                 boxShadow: showPagasaBulletin
-                  ? '0 8px 32px rgba(239,68,68,0.4)'
-                  : '0 8px 32px rgba(0,0,0,0.2)',
+                  ? '0 8px 32px rgba(107,69,40,0.28)'
+                  : '0 8px 32px rgba(107,69,40,0.28)',
                 animation: 'fadeIn 0.4s ease-out',
                 display: showPagasaBulletin ? 'none' : 'flex',
               }}
@@ -352,13 +352,17 @@ export default function App() {
               style={{
                 bottom: '148px',
                 right: '24px',
-                background: showAiPanel ? 'var(--accent-primary)' : 'var(--bg-card)',
-                border: showAiPanel ? '1px solid var(--accent-primary)' : '1px solid var(--border)',
+                background: showAiPanel
+                  ? 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)'
+                  : 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
+                border: showAiPanel
+                  ? '1px solid rgba(185, 151, 91, 0.5)'
+                  : '1px solid rgba(185, 151, 91, 0.5)',
                 backdropFilter: 'blur(12px)',
-                color: showAiPanel ? 'white' : 'var(--text-primary)',
+                color: '#fff8e8',
                 boxShadow: showAiPanel
-                  ? '0 8px 32px rgba(99,102,241,0.5)'
-                  : '0 8px 32px rgba(0,0,0,0.2)',
+                  ? '0 8px 32px rgba(107,69,40,0.28)'
+                  : '0 8px 32px rgba(107,69,40,0.28)',
                 transition: 'background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease',
               }}
             >

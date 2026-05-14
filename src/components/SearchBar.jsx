@@ -52,19 +52,20 @@ export default function SearchBar({ onSelectLocation, showToast }) {
       <div
         className="flex items-center gap-2.5 px-3.5 rounded-xl transition-all"
         style={{
-          background: 'var(--bg-input)',
-          border: '1.5px solid var(--border)',
+          background: '#6b4528',
+          border: '1.5px solid rgba(185, 151, 91, 0.55)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
         }}
         onFocus={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border-focus)';
-          e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-glow)';
+          e.currentTarget.style.borderColor = '#c9782f';
+          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(201,120,47,0.18)';
         }}
         onBlur={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border)';
-          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.borderColor = 'rgba(185, 151, 91, 0.55)';
+          e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.06)';
         }}
       >
-        <svg className="flex-shrink-0" style={{ color: 'var(--text-muted)' }} width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <svg className="flex-shrink-0" style={{ color: '#e7d7b4' }} width="18" height="18" viewBox="0 0 24 24" fill="none">
           <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
           <path d="M20 20L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
@@ -75,8 +76,8 @@ export default function SearchBar({ onSelectLocation, showToast }) {
           onKeyDown={(e) => e.key === 'Escape' && setShowResults(false)}
           placeholder="Search city..."
           autoComplete="off"
-          className="flex-1 py-3 bg-transparent border-none text-sm outline-none max-md:py-3.5 max-md:text-base"
-          style={{ color: 'var(--text-primary)' }}
+          className="flex-1 py-3 bg-transparent border-none text-sm outline-none max-md:py-3.5 max-md:text-base placeholder:text-[#e7d7b4]"
+          style={{ color: '#f8f1e5' }}
         />
       </div>
 
@@ -85,9 +86,9 @@ export default function SearchBar({ onSelectLocation, showToast }) {
         <div
           className="absolute top-full left-6 right-6 max-h-[260px] overflow-y-auto z-[100] rounded-xl max-md:left-4 max-md:right-4"
           style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--shadow-md)',
+            background: 'rgba(255, 249, 239, 0.98)',
+            border: '1px solid rgba(185, 151, 91, 0.38)',
+            boxShadow: '0 12px 32px rgba(107,69,40,0.14)',
             animation: 'fadeIn 0.2s ease',
           }}
         >
@@ -96,12 +97,12 @@ export default function SearchBar({ onSelectLocation, showToast }) {
               key={`${r.latitude}-${r.longitude}-${i}`}
               onClick={() => handleSelect(r)}
               className="px-4 py-3 cursor-pointer text-sm last:border-b-0 transition-colors max-md:py-3.5 max-md:text-[15px]"
-              style={{ borderBottom: '1px solid var(--border)' }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+              style={{ borderBottom: '1px solid rgba(185, 151, 91, 0.25)', color: '#4b2f1d' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(244, 231, 199, 0.95)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >
               {r.name}{r.admin1 ? ', ' + r.admin1 : ''}
-              <span className="ml-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+              <span className="ml-1.5 text-xs" style={{ color: '#8a6c47' }}>
                 {r.country_code || ''}
               </span>
             </div>

@@ -62,10 +62,10 @@ export default function BestTime({ weatherData, tempUnit }) {
     <div className="mx-6 mb-4 p-4 rounded-2xl max-md:mx-4 max-md:mb-3 flex items-center justify-between" 
          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
       <div>
-        <h3 className="text-sm font-bold flex items-center gap-2 mb-1.5" style={{ color: 'var(--text-primary)' }}>
+        <h3 className="text-md font-bold flex items-center gap-2 mb-1.5" style={{ color: 'var(--text-primary)' }}>
           <Sun size={16} className="text-yellow-500" /> Best Time to Go Outside
         </h3>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>
           {isTomorrow ? 'Tomorrow, ' : 'Today, '}{bestHour.time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} • {bestHour.desc}, {Math.round(bestHour.temp)}{unitSym}
         </p>
       </div>

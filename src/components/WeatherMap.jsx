@@ -449,11 +449,11 @@ const WeatherMap = React.memo(function WeatherMap({
         onClick={onGeoLocate}
         className="absolute bottom-6 right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-24 max-md:right-4 max-md:w-11 max-md:h-11"
         style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
+          background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
+          border: '1px solid rgba(185,151,91,0.5)',
           backdropFilter: 'blur(var(--glass-blur))',
-          color: 'var(--text-primary)',
-          boxShadow: 'var(--shadow-sm)',
+          color: '#fff8e8',
+          boxShadow: '0 8px 24px rgba(107,69,40,0.18)',
         }}
         title="My Location"
       >
@@ -469,11 +469,11 @@ const WeatherMap = React.memo(function WeatherMap({
         onClick={onToggleTheme}
         className="absolute bottom-[84px] right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-[150px] max-md:right-4 max-md:w-11 max-md:h-11"
         style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
+          background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
+          border: '1px solid rgba(185,151,91,0.5)',
           backdropFilter: 'blur(var(--glass-blur))',
-          color: 'var(--text-primary)',
-          boxShadow: 'var(--shadow-sm)',
+          color: '#fff8e8',
+          boxShadow: '0 8px 24px rgba(107,69,40,0.18)',
         }}
         title="Toggle Theme"
       >
@@ -502,10 +502,10 @@ const WeatherMap = React.memo(function WeatherMap({
           onClick={onToggleSidebar}
           className="absolute top-4 left-4 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:top-3 max-md:left-3 max-md:w-12 max-md:h-12"
           style={{
-            background: 'var(--bg-card)',
+            background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
             border: '1px solid var(--border)',
             backdropFilter: 'blur(var(--glass-blur))',
-            color: 'var(--text-primary)',
+            color: '#fff8e8',
             boxShadow: 'var(--shadow-sm)',
           }}
         >
@@ -520,16 +520,17 @@ const WeatherMap = React.memo(function WeatherMap({
         <div
           className="absolute top-6 left-1/2 -translate-x-1/2 z-[800] px-4 py-2 rounded-xl flex items-center gap-2 shadow-md transition-all"
           style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
+            background: 'rgba(231, 214, 173, 0.95)',
+            border: '1px solid rgba(185, 151, 91, 0.85)',
             backdropFilter: 'blur(var(--glass-blur))',
-            color: 'var(--text-primary)',
+            color: '#4b2f1d',
+            boxShadow: '0 8px 24px rgba(107,69,40,0.12)',
             animation: 'slideUp 0.3s ease-out'
           }}
         >
-          {currentLayerType === 'temp' && <><Thermometer size={16} className="text-blue-400" /><span className="text-sm font-semibold">Temperature</span></>}
-          {currentLayerType === 'wind' && <><Wind size={16} className="text-teal-400" /><span className="text-sm font-semibold">Wind Flow</span></>}
-          {currentLayerType === 'radar' && <><CloudRain size={16} className="text-indigo-400" /><span className="text-sm font-semibold">Rain Radar</span></>}
+          {currentLayerType === 'temp' && <><Thermometer size={16} style={{ color: '#c9782f' }} /><span className="text-sm font-semibold">Temperature</span></>}
+          {currentLayerType === 'wind' && <><Wind size={16} style={{ color: '#6b4528' }} /><span className="text-sm font-semibold">Wind Flow</span></>}
+          {currentLayerType === 'radar' && <><CloudRain size={16} style={{ color: '#b58a48' }} /><span className="text-sm font-semibold">Rain Radar</span></>}
         </div>
       )}
 
@@ -551,18 +552,18 @@ const WeatherMap = React.memo(function WeatherMap({
         <div
           className="absolute bottom-[84px] left-6 z-[1000] w-[260px] p-3 px-4 rounded-xl transition-all max-md:bottom-24 max-md:left-4 max-md:w-[220px] max-md:p-2 max-md:px-3"
           style={{
-            background: 'var(--bg-card)',
+            background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
             border: '1px solid var(--border)',
             backdropFilter: 'blur(var(--glass-blur))',
             boxShadow: 'var(--shadow-md)',
             animation: 'fadeIn 0.3s ease-out'
           }}
         >
-          <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#fff8e8' }}>
             Temperature Scale
           </div>
           <div className="ftl-gradient" />
-          <div className="flex justify-between mt-1.5 text-[10.5px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          <div className="flex justify-between mt-1.5 text-[10.5px] font-semibold" style={{ color: '#fff8e8' }}>
             {(() => {
               const cPoints = [0, 10, 18, 26, 33];
               const unitSym = tempUnit === 'celsius' ? '°C' : '°F';
@@ -583,7 +584,7 @@ const WeatherMap = React.memo(function WeatherMap({
         <div
           className="absolute bottom-[84px] left-6 z-[1000] w-[280px] p-3 px-4 rounded-xl transition-all max-md:bottom-24 max-md:left-4 max-md:w-[240px] max-md:p-2 max-md:px-3"
           style={{
-            background: 'var(--bg-card)',
+            background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
             border: '1px solid var(--border)',
             backdropFilter: 'blur(var(--glass-blur))',
             boxShadow: 'var(--shadow-md)',
@@ -591,22 +592,12 @@ const WeatherMap = React.memo(function WeatherMap({
           }}
         >
           <div className="flex justify-between items-center mb-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+            <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#fff8e8' }}>
               Wind Speed
             </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowWindParticles(!showWindParticles); }}
-              className="text-[10px] font-bold px-2 py-1 rounded transition-colors"
-              style={{
-                background: showWindParticles ? 'var(--accent)' : 'var(--bg-modifier-hover)',
-                color: showWindParticles ? '#fff' : 'var(--text-secondary)'
-              }}
-            >
-              {showWindParticles ? 'Particles: ON' : 'Particles: OFF'}
-            </button>
           </div>
           <div className="wind-gradient" />
-          <div className="flex justify-between mt-1.5 text-[10.5px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          <div className="flex justify-between mt-1.5 text-[10.5px] font-semibold" style={{ color: '#fff8e8' }}>
             {(() => {
               const cPoints = [0, 10, 20, 30, 40];
               const unitSym = windUnit === 'kmh' ? 'km/h' : 'mph';

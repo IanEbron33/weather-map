@@ -460,29 +460,29 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
           <div
             className="warning-badge absolute top-6 left-1/2 z-[1000] px-4 py-2.5 rounded-2xl flex items-center gap-3 pointer-events-auto"
             style={{
-              background: 'var(--bg-card)',
-              border: `1px solid ${badgeColor}`,
+              background: 'rgba(231, 214, 173, 0.96)',
+              border: '1px solid rgba(185, 151, 91, 0.95)',
               backdropFilter: 'blur(var(--glass-blur))',
-              boxShadow: 'var(--shadow-lg)'
+              boxShadow: '0 12px 32px rgba(107, 69, 40, 0.18)'
             }}
           >
-            <div className="w-3 h-3 rounded-full" style={{ background: badgeColor, boxShadow: `0 0 10px ${badgeColor}`, animation: 'pulse 1.5s infinite' }} />
+            <div className="w-3 h-3 rounded-full" style={{ background: badgeColor, boxShadow: `0 0 10px rgba(185, 151, 91, 0.35)`, animation: 'pulse 1.5s infinite' }} />
             <div className="flex flex-col">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-400">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: '#6b4528' }}>
                 Active Warning
               </span>
-              <span className="text-sm font-bold text-white tracking-wide drop-shadow-md">
+              <span className="text-sm font-bold tracking-wide" style={{ color: '#4b2f1d' }}>
                 {badgeCategory.toUpperCase()} {badgeName.toUpperCase()}
                 {pg && first.name.toUpperCase() !== badgeName.toUpperCase() && (
-                  <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}> ({first.name})</span>
+                  <span style={{ fontSize: '11px', color: '#6f5536', fontWeight: 600 }}> ({first.name})</span>
                 )}
               </span>
             </div>
             {pg && (
               <div style={{
                 fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '4px',
-                background: 'rgba(59,130,246,0.12)', color: '#60a5fa',
-                border: '1px solid rgba(59,130,246,0.2)', marginLeft: '4px'
+                background: 'rgba(107,69,40,0.12)', color: '#6b4528',
+                border: '1px solid rgba(107,69,40,0.18)', marginLeft: '4px'
               }}>
                 PAGASA
               </div>
@@ -495,15 +495,15 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
         <div
           className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] px-4 py-2.5 rounded-2xl flex items-center gap-3 pointer-events-none shadow-md"
           style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
+            background: 'rgba(231, 214, 173, 0.96)',
+            border: '1px solid rgba(185, 151, 91, 0.85)',
             backdropFilter: 'blur(var(--glass-blur))',
-            boxShadow: 'var(--shadow-lg)',
+            boxShadow: '0 12px 32px rgba(107, 69, 40, 0.16)',
             animation: 'slideDownWarning 0.4s ease-out forwards'
           }}
         >
-          <div className="w-3 h-3 rounded-full" style={{ background: '#22c55e', boxShadow: '0 0 10px #22c55e' }} />
-          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+          <div className="w-3 h-3 rounded-full" style={{ background: '#7c8a45', boxShadow: '0 0 10px rgba(124,138,69,0.5)' }} />
+          <span className="text-sm font-bold" style={{ color: '#4b2f1d' }}>
             There is no active typhoon
           </span>
         </div>

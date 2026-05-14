@@ -1,28 +1,29 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 
-// Cache the bulletin for 30 minutes (1800 seconds)
-export const revalidate = 1800;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const PAGASA_BULLETIN_URL = 'https://www.pagasa.dost.gov.ph/tropical-cyclone/severe-weather-bulletin';
 const PAGASA_BASE_URL = 'https://www.pagasa.dost.gov.ph';
+const NO_ACTIVE_TEXT = 'no active tropical cyclone within the philippine area of responsibility';
 
-// In-memory cache to avoid hammering PAGASA
-let cache = { data: null, timestamp: 0 };
-const CACHE_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+function normalizeText(text = '') {
+  return String(text).replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function isNoActivePagasaPage($) {
+  const bodyText = normalizeText($('body').text());
+  return bodyText.includes(NO_ACTIVE_TEXT);
+}
 
 export async function GET() {
-  // Serve from cache if fresh
-  const now = Date.now();
-  if (cache.data && (now - cache.timestamp) < CACHE_DURATION_MS) {
-    return NextResponse.json(cache.data);
-  }
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const res = await fetch(PAGASA_BULLETIN_URL, {
+      cache: 'no-store',
       signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
@@ -37,6 +38,18 @@ export async function GET() {
 
     const html = await res.text();
     const $ = cheerio.load(html);
+
+    if (isNoActivePagasaPage($)) {
+      return NextResponse.json({
+        bulletins: [],
+        scrapedAt: new Date().toISOString(),
+        source: PAGASA_BULLETIN_URL,
+        hasBulletin: false,
+        hasActiveCyclone: false,
+        bulletinState: 'no-active',
+        statusMessage: 'There is no active typhoon',
+      });
+    }
 
     const bulletins = [];
 
@@ -98,22 +111,15 @@ export async function GET() {
       scrapedAt: new Date().toISOString(),
       source: PAGASA_BULLETIN_URL,
       hasBulletin: bulletins.length > 0,
+      hasActiveCyclone: bulletins.length > 0,
+      bulletinState: bulletins.length > 0 ? 'active' : 'no-active',
+      statusMessage: bulletins.length > 0 ? null : 'There is no active typhoon',
     };
 
-    cache = { data: result, timestamp: now };
     return NextResponse.json(result);
 
   } catch (err) {
     console.error('[PAGASA Scraper Error]:', err.message);
-
-    // Return cached data if available, even if stale
-    if (cache.data) {
-      return NextResponse.json({
-        ...cache.data,
-        stale: true,
-        error: err.message,
-      });
-    }
 
     return NextResponse.json({
       bulletins: [],

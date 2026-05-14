@@ -36,6 +36,7 @@ export default function App() {
   const [showPagasaBulletin, setShowPagasaBulletin] = useState(false);
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
+  const lastTyphoonStatusRef = useRef('');
 
   // Store latest unit values in refs so callbacks don't go stale
   const tempUnitRef = useRef(tempUnit);
@@ -146,9 +147,11 @@ export default function App() {
   }, [showSplash]);
 
   useEffect(() => {
-    if (showTyphoonLayer && typhoonData && typhoonData.activeCyclones && typhoonData.activeCyclones.length === 0) {
-      showToast('Typhoon Tracker: No active storms in the Western Pacific at this time.', false, 'info');
+    const statusMessage = typhoonData?.statusMessage || '';
+    if (showTyphoonLayer && statusMessage && statusMessage !== lastTyphoonStatusRef.current) {
+      showToast(statusMessage, false, 'info');
     }
+    lastTyphoonStatusRef.current = statusMessage;
   }, [showTyphoonLayer, typhoonData, showToast]);
 
   const setTheme = useCallback((t) => {

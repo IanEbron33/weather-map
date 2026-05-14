@@ -66,30 +66,16 @@ function buildTyphoonIconHtml() {
 
 // Track dots are now native CircleMarkers
 
-
-let globalTyphoonCache = null;
-
 const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, windUnit = 'kmh', onOpenBulletin }) {
   const [typhoonData, setTyphoonData] = useState(null);
   const map = useMap();
 
   const fetchTyphoonData = useCallback(async () => {
-    // Use cache if available
-    if (globalTyphoonCache) {
-      setTyphoonData(globalTyphoonCache);
-      if (onDataLoaded) onDataLoaded(globalTyphoonCache);
-      return;
-    }
-
     try {
-      const res = await fetch(`/api/typhoon?t=${Date.now()}`);
+      const res = await fetch(`/api/typhoon?t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch typhoon data');
 
       const merged = await res.json();
-
-      if (!merged.error) {
-        globalTyphoonCache = merged;
-      }
 
       setTyphoonData(merged);
       if (onDataLoaded) onDataLoaded(merged);
@@ -105,8 +91,8 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
     if (!visible) return;
     fetchTyphoonData();
 
-    // Auto-refresh every 15 minutes (900000 ms) when active
-    const intervalId = setInterval(fetchTyphoonData, 900000);
+    // Auto-refresh every 5 minutes when active
+    const intervalId = setInterval(fetchTyphoonData, 5 * 60 * 1000);
     return () => clearInterval(intervalId);
   }, [visible, fetchTyphoonData]);
 
@@ -133,6 +119,8 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
   }, [map]);
 
   if (!visible || !typhoonData) return null;
+  const hasActiveTyphoon = Array.isArray(typhoonData.activeCyclones) && typhoonData.activeCyclones.length > 0;
+  const noActiveMessage = typhoonData.statusMessage === 'There is no active typhoon';
 
   // Helper to check if a coordinate is inside the PAR polygon
   function isInsidePAR(lat, lon) {
@@ -167,30 +155,34 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
         }
       `}</style>
 
-      {/* PAR Border */}
-      <Polyline
-        positions={PAR_POINTS}
-        pathOptions={{
-          color: '#ef4444',
-          weight: 2,
-          dashArray: '10, 10',
-          opacity: 0.6,
-          interactive: false
-        }}
-      />
+      {hasActiveTyphoon && (
+        <>
+          {/* PAR Border */}
+          <Polyline
+            positions={PAR_POINTS}
+            pathOptions={{
+              color: '#ef4444',
+              weight: 2,
+              dashArray: '10, 10',
+              opacity: 0.6,
+              interactive: false
+            }}
+          />
 
-      {/* PAR Label Marker */}
-      <Marker
-        position={[25, 135]}
-        icon={L.divIcon({
-          html: '<div style="color:#ef4444; font-size:10px; font-weight:800; background:rgba(0,0,0,0.4); padding:2px 6px; border-radius:4px; border:1px solid rgba(239,68,68,0.3); transform: translate(-100%, 0);">PAR</div>',
-          className: '',
-          iconAnchor: [0, 0]
-        })}
-        interactive={false}
-      />
+          {/* PAR Label Marker */}
+          <Marker
+            position={[25, 135]}
+            icon={L.divIcon({
+              html: '<div style="color:#ef4444; font-size:10px; font-weight:800; background:rgba(0,0,0,0.4); padding:2px 6px; border-radius:4px; border:1px solid rgba(239,68,68,0.3); transform: translate(-100%, 0);">PAR</div>',
+              className: '',
+              iconAnchor: [0, 0]
+            })}
+            interactive={false}
+          />
+        </>
+      )}
 
-      {typhoonData.activeCyclones.map((cyclone, idx) => {
+      {hasActiveTyphoon && typhoonData.activeCyclones.map((cyclone, idx) => {
         const color = getCycloneColor(cyclone.category);
         const historyPts = cyclone.projectedPath.filter(p => !p.isForecast || p.isCurrent).map(p => [p.lat, p.lon]);
         const forecastPts = cyclone.projectedPath.filter(p => p.isForecast || p.isCurrent).map(p => [p.lat, p.lon]);
@@ -457,7 +449,7 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
       })}
 
       {/* Top warning badge */}
-      {typhoonData.activeCyclones.length > 0 && (() => {
+      {hasActiveTyphoon && (() => {
         const first = typhoonData.activeCyclones[0];
         const pg = first.pagasa;
         const badgeName = pg?.localName || first.name;
@@ -498,6 +490,24 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
           </div>
         );
       })()}
+
+      {noActiveMessage && (
+        <div
+          className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] px-4 py-2.5 rounded-2xl flex items-center gap-3 pointer-events-none shadow-md"
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            backdropFilter: 'blur(var(--glass-blur))',
+            boxShadow: 'var(--shadow-lg)',
+            animation: 'slideDownWarning 0.4s ease-out forwards'
+          }}
+        >
+          <div className="w-3 h-3 rounded-full" style={{ background: '#22c55e', boxShadow: '0 0 10px #22c55e' }} />
+          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+            There is no active typhoon
+          </span>
+        </div>
+      )}
     </>
   );
 });

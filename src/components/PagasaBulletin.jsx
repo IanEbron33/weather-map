@@ -5,8 +5,6 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 
-let pagasaCache = null;
-
 export default function PagasaBulletin({ visible, onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -14,17 +12,12 @@ export default function PagasaBulletin({ visible, onClose }) {
   const [expanded, setExpanded] = useState(false);
 
   const fetchBulletin = useCallback(async () => {
-    if (pagasaCache) {
-      setData(pagasaCache);
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/pagasa-bulletin?t=${Date.now()}`);
+      const res = await fetch(`/api/pagasa-bulletin?t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch bulletin');
       const result = await res.json();
-      pagasaCache = result;
       setData(result);
     } catch (err) {
       setError(err.message);
@@ -34,15 +27,13 @@ export default function PagasaBulletin({ visible, onClose }) {
   }, []);
 
   const handleRefresh = useCallback(async () => {
-    pagasaCache = null;
     setData(null);
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/pagasa-bulletin?t=${Date.now()}`);
+      const res = await fetch(`/api/pagasa-bulletin?t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const result = await res.json();
-      pagasaCache = result;
       setData(result);
     } catch (err) {
       setError(err.message);

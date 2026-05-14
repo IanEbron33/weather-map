@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-// Cache live data for 15 minutes on Vercel's edge network
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Western North Pacific basin monitoring area
 // Covers 0°N-40°N, 100°E-180°E
@@ -45,6 +45,75 @@ function extractLocalName(title) {
   if (!title) return '';
   const match = title.match(/[""\u201C\u201D]([^""\u201C\u201D]+)[""\u201C\u201D]/);
   return match ? match[1] : title;
+}
+
+function parseWindKmh(text = '') {
+  const match = String(text).match(/(\d+(?:\.\d+)?)\s*km\/h/i);
+  return match ? Math.round(Number(match[1])) : null;
+}
+
+function inferCategoryFromPagasaBulletin(bulletin = {}) {
+  const title = `${bulletin.title || ''} ${bulletin.summary || ''}`.toLowerCase();
+  const windKmh = parseWindKmh(bulletin.maxWinds) || 0;
+
+  if (title.includes('super typhoon') || windKmh >= 185) return 'Super Typhoon';
+  if (title.includes('typhoon') || windKmh >= 118) return 'Typhoon';
+  if (title.includes('severe tropical storm') || windKmh >= 89) return 'Severe Tropical Storm';
+  if (title.includes('tropical storm') || windKmh >= 62) return 'Tropical Storm';
+  return 'Tropical Depression';
+}
+
+function buildPagasaFallbackCyclone(bulletin) {
+  if (!bulletin?.coordinates) return null;
+
+  const coords = bulletin.coordinates;
+  const localName = extractLocalName(bulletin.title);
+  const windKmh = parseWindKmh(bulletin.maxWinds) || 0;
+
+  return {
+    name: localName || bulletin.title || 'PAGASA Cyclone',
+    internationalName: bulletin.title || localName || 'PAGASA Cyclone',
+    category: inferCategoryFromPagasaBulletin(bulletin),
+    alertLevel: 'PAGASA',
+    currentLocation: { lat: coords.lat, lon: coords.lon },
+    windSpeedKmh: windKmh,
+    projectedPath: [{
+      lat: coords.lat,
+      lon: coords.lon,
+      time: 'Now',
+      timestamp: Date.now(),
+      isCurrent: true,
+    }],
+    gdacsEventId: null,
+    sourceUrl: 'https://www.pagasa.dost.gov.ph/tropical-cyclone/severe-weather-bulletin',
+    pagasa: {
+      localName,
+      title: bulletin.title || '',
+      issuedAt: bulletin.issuedAt || '',
+      summary: bulletin.summary || '',
+      maxWinds: bulletin.maxWinds || '',
+      gustiness: bulletin.gustiness || '',
+      movement: bulletin.movement || '',
+      currentPosition: bulletin.currentPosition || '',
+      trackOutlook: bulletin.trackOutlook || '',
+      forecastPositions: bulletin.forecastPositions || [],
+      trackImageUrl: bulletin.trackImageUrl || '',
+      bulletinPdfs: bulletin.bulletinPdfs || [],
+      coordinates: bulletin.coordinates || null,
+      matchDistance: 0,
+    },
+  };
+}
+
+function hasVerifiedActivePagasaBulletin(pagasaData) {
+  const bulletins = Array.isArray(pagasaData?.bulletins) ? pagasaData.bulletins : [];
+  return Boolean(
+    pagasaData &&
+    !pagasaData.error &&
+    !pagasaData.stale &&
+    pagasaData.hasActiveCyclone === true &&
+    bulletins.length > 0
+  );
 }
 
 /**
@@ -102,7 +171,7 @@ async function fetchGdacsTrack(eventId, episodeId) {
   try {
     const geoUrl = `https://www.gdacs.org/contentdata/resources/TC/${eventId}/geojson_${eventId}_${episodeId}.geojson`;
     const res = await fetch(geoUrl, {
-      next: { revalidate: 1800 },
+      cache: 'no-store',
       signal: controller.signal
     });
     if (!res.ok) return [];
@@ -189,22 +258,47 @@ export async function GET(request) {
   const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s total limit
 
   try {
-    // 1. Start fetching GDACS RSS
+    const pagasaRes = await fetch(new URL('/api/pagasa-bulletin', request.url), {
+      cache: 'no-store'
+    });
+    const pagasaData = pagasaRes.ok
+      ? await pagasaRes.json()
+      : { bulletins: [], hasBulletin: false, error: `PAGASA fetch failed: ${pagasaRes.status}` };
+
+    if (!hasVerifiedActivePagasaBulletin(pagasaData)) {
+      return NextResponse.json({
+        activeCyclones: [],
+        hasActiveTyphoon: false,
+        statusMessage: pagasaData?.statusMessage || 'There is no active typhoon',
+        source: 'PAGASA',
+        pagasaSource: pagasaData.source || null,
+        pagasaScrapedAt: pagasaData.scrapedAt || null,
+        pagasaError: pagasaData.error || null,
+      });
+    }
+
+    const pagasaBulletins = pagasaData.bulletins || [];
+
     const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
-    const rssPromise = fetch(rssUrl, {
-      next: { revalidate: 1800 },
+    const rssRes = await fetch(rssUrl, {
+      cache: 'no-store',
       signal: controller.signal
-    }).then(res => {
-      if (!res.ok) throw new Error(`GDACS fetch failed: ${res.status}`);
-      return res.text();
     });
 
-    // 2. Start fetching PAGASA data concurrently
-    const pagasaPromise = fetch(new URL('/api/pagasa-bulletin', request.url), {
-      next: { revalidate: 1800 }
-    }).then(res => res.ok ? res.json() : { bulletins: [] }).catch(() => ({ bulletins: [] }));
+    if (!rssRes.ok) {
+      const fallbackCyclones = pagasaBulletins.map(buildPagasaFallbackCyclone).filter(Boolean);
+      return NextResponse.json({
+        activeCyclones: fallbackCyclones,
+        hasActiveTyphoon: true,
+        statusMessage: null,
+        source: 'PAGASA',
+        pagasaSource: pagasaData.source || null,
+        pagasaScrapedAt: pagasaData.scrapedAt || null,
+        gdacsError: `GDACS fetch failed: ${rssRes.status}`,
+      });
+    }
 
-    const [rssText, pagasaData] = await Promise.all([rssPromise, pagasaPromise]);
+    const rssText = await rssRes.text();
 
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     const activeCyclones = [];
@@ -262,16 +356,37 @@ export async function GET(request) {
       });
     }
 
-    const enrichedCyclones = matchPagasaToGdacs(activeCyclones, pagasaData.bulletins || []);
+    const enrichedCyclones = matchPagasaToGdacs(activeCyclones, pagasaBulletins);
+    const pagasaFallbackCyclones = pagasaBulletins
+      .map(buildPagasaFallbackCyclone)
+      .filter(Boolean);
+    const matchedFallbackTitles = new Set(
+      enrichedCyclones
+        .map(cyclone => cyclone.pagasa?.title)
+        .filter(Boolean)
+    );
+    const supplementalCyclones = pagasaFallbackCyclones.filter(
+      cyclone => cyclone.pagasa?.title && !matchedFallbackTitles.has(cyclone.pagasa.title)
+    );
+    const finalCyclones = [...enrichedCyclones, ...supplementalCyclones];
 
     return NextResponse.json({ 
-      activeCyclones: enrichedCyclones,
+      activeCyclones: finalCyclones,
+      hasActiveTyphoon: true,
+      statusMessage: null,
       pagasaSource: pagasaData.source || null,
       pagasaScrapedAt: pagasaData.scrapedAt || null,
+      source: 'PAGASA',
     });
   } catch (err) {
     console.error('[Typhoon API Error]:', err.message);
-    return NextResponse.json({ activeCyclones: [], error: err.message }, { status: 200 });
+    return NextResponse.json({
+      activeCyclones: [],
+      hasActiveTyphoon: false,
+      statusMessage: null,
+      error: err.message,
+      source: 'PAGASA',
+    }, { status: 200 });
   } finally {
     clearTimeout(timeoutId);
   }

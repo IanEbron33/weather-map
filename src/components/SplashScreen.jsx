@@ -1,49 +1,68 @@
-import { CloudSun } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+const CLOUDLY_VIDEO = '/cloudly-assessts/cloudly-animation.webm';
+const CLOUDLY_POSTER = '/cloudly-assessts/cloudly-poster.jpg';
 
 export default function SplashScreen({ visible }) {
+  const [videoFailed, setVideoFailed] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateMotionPreference = () => setReducedMotion(mediaQuery.matches);
+
+    updateMotionPreference();
+    mediaQuery.addEventListener('change', updateMotionPreference);
+    return () => mediaQuery.removeEventListener('change', updateMotionPreference);
+  }, []);
+
   if (!visible) return null;
+
+  const showPosterOnly = reducedMotion || videoFailed;
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
-      style={{ background: 'var(--bg-primary)' }}
+      className="cloudly-splash fixed inset-0 z-[9999] flex items-center justify-center"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading WeatherScope"
     >
-      <div className="text-center" style={{ animation: 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-        {/* Icon */}
-        <div className="relative inline-block mb-6">
-          <div className="text-7xl relative z-[2] text-[var(--text-primary)]" style={{ animation: 'float 3s ease-in-out infinite' }}>
-            <CloudSun size={72} strokeWidth={1.5} />
-          </div>
-          <div
-            className="absolute top-1/2 left-1/2 w-[70px] h-[70px] rounded-full z-[1]"
-            style={{
-              background: 'var(--accent)',
-              transform: 'translate(-50%, -50%)',
-              filter: 'blur(20px)',
-              animation: 'bgPulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            }}
-          />
+      <div className="cloudly-splash-shell text-center">
+        <div className="cloudly-splash-media" aria-hidden="true">
+          {!showPosterOnly && (
+            <video
+              className="cloudly-splash-video"
+              autoPlay
+              muted
+              playsInline
+              loop
+              preload="metadata"
+              poster={CLOUDLY_POSTER}
+              onError={() => setVideoFailed(true)}
+            >
+              <source src={CLOUDLY_VIDEO} type="video/webm" />
+            </video>
+          )}
+          {showPosterOnly && (
+            <img
+              className="cloudly-splash-poster"
+              src={CLOUDLY_POSTER}
+              alt=""
+              draggable="false"
+            />
+          )}
         </div>
 
-        {/* Title */}
-        <h1 className="text-4xl font-extrabold tracking-tight mb-2">
-          <span className="brand-gradient">WeatherScope</span>
+        <h1 className="cloudly-splash-title">
+          Cloudly
         </h1>
 
-        {/* Subtitle */}
-        <p className="text-[15px] font-medium mb-8" style={{ color: 'var(--text-secondary)' }}>
-          Loading weather data...
+        <p className="cloudly-splash-subtitle">
+          Your friendly neighborhood weather companion
         </p>
 
-        {/* Loader bar */}
-        <div className="w-[220px] h-1 rounded mx-auto overflow-hidden relative" style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
-          <div
-            className="absolute left-0 top-0 h-full rounded"
-            style={{
-              background: 'var(--accent)',
-              animation: 'loaderSlide 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite',
-            }}
-          />
+        <div className="cloudly-splash-loader" aria-hidden="true">
+          <span />
         </div>
       </div>
     </div>

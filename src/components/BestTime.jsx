@@ -60,7 +60,7 @@ export default function BestTime({ weatherData, tempUnit }) {
 
   return (
     <div className="mx-6 mb-4 p-4 rounded-2xl max-md:mx-4 max-md:mb-3 flex items-center justify-between" 
-         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+         style={{ background: 'var(--bg-card)', border: '1px solid #450a0a' }}>
       <div>
         <h3 className="text-md font-bold flex items-center gap-2 mb-1.5" style={{ color: 'var(--text-primary)' }}>
           <Sun size={16} className="text-yellow-500" /> Best Time to Go Outside

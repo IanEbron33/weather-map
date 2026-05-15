@@ -1,75 +1,87 @@
 import { useMemo } from 'react';
-import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
-import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
+import { getWeatherInfo } from '../utils/weatherCodes';
+import { getWeatherIconAsset } from '../utils/weatherIconAssets';
 
-const WeatherIcons = { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle };
-
-export default function HourlyStrip({ weatherData, tempUnit }) {
+export default function HourlyStrip({ weatherData }) {
   if (!weatherData) return null;
 
   const items = useMemo(() => {
     const hourly = weatherData.hourly;
     const now = new Date();
     let startIdx = 0;
+
     for (let i = 0; i < hourly.time.length; i++) {
-      if (new Date(hourly.time[i]) >= now) { startIdx = i; break; }
+      if (new Date(hourly.time[i]) >= now) {
+        startIdx = i;
+        break;
+      }
     }
 
-    const unitSym = '°';
     const result = [];
     for (let i = startIdx; i < startIdx + 24 && i < hourly.time.length; i++) {
       const d = new Date(hourly.time[i]);
       const hour = d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
       const w = getWeatherInfo(hourly.weather_code[i], hourly.is_day[i]);
-      const precip = hourly.precipitation_probability[i];
+      const precip = hourly.precipitation_probability[i] ?? 0;
 
       result.push({
         key: i,
         time: i === startIdx ? 'Now' : hour,
-        icon: w.icon,
+        desc: w.desc,
+        iconSrc: getWeatherIconAsset(w.icon),
         temp: Math.round(hourly.temperature_2m[i]),
-        tempColor: getTempColor(hourly.temperature_2m[i], tempUnit),
-        unitSym,
         precip,
       });
     }
+
     return result;
-  }, [weatherData, tempUnit]);
+  }, [weatherData]);
 
   return (
-    <div className="px-6 pb-4 max-md:px-4 max-md:pb-3">
-      <div className="overflow-x-auto pb-1">
-        <div className="flex gap-1 min-w-max">
+    <section className="px-6 pb-5 max-md:px-4 max-md:pb-4">
+      <h2
+        className="mb-3 text-lg font-extrabold leading-none max-md:text-[18px]"
+        style={{ color: '#3f2a18', letterSpacing: '0' }}
+      >
+        Hourly Forecast
+      </h2>
+
+      <div className="overflow-x-auto pb-2">
+        <div className="flex min-w-max gap-2.5 max-md:gap-2">
           {items.map((item) => (
-            <div
+            <article
               key={item.key}
-              className="flex flex-col items-center gap-1 py-2 px-2.5 rounded-lg min-w-[58px] transition-colors max-md:min-w-[54px] max-md:py-1.5 max-md:px-2"
+              className="flex h-[114px] min-w-[74px] flex-col items-center justify-between rounded-[12px] px-2.5 py-3 max-md:h-[110px] max-md:min-w-[74px] max-md:rounded-[12px] max-md:px-2 max-md:py-2.5"
               style={{
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border)',
+                background: 'rgba(255, 252, 245, 0.96)',
+                boxShadow: '0 8px 16px rgba(96, 58, 31, 0.12)',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-input)')}
             >
-              <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-[13px] font-extrabold max-md:text-[12px]" style={{ color: '#4d2d1c' }}>
                 {item.time}
               </span>
-              <span className="text-lg">
-                {(() => {
-                  const IconComp = WeatherIcons[item.icon] || WeatherIcons.HelpCircle;
-                  return <IconComp size={20} strokeWidth={1.5} />;
-                })()}
-              </span>
-              <span className="text-[13px] font-semibold" style={{ color: item.tempColor }}>
-                {item.temp}{item.unitSym}
-              </span>
-                <span className="text-[10px]" style={{ color: '#60a5fa' }}>
+
+              <img
+                src={item.iconSrc}
+                alt={item.desc}
+                className="h-[40px] w-[40px] object-contain max-md:h-[40px] max-md:w-[40px]"
+                style={{ transform: 'scale(1.18)' }}
+                loading="lazy"
+                draggable="false"
+              />
+
+              <div className="text-center">
+                <div className="text-[18px] font-extrabold leading-none max-md:text-[18px]" style={{ color: '#bd7a53' }}>
+                  {item.temp}°
+                </div>
+                <div className="mt-1 text-[11px] font-bold leading-none max-md:text-[11px]" style={{ color: '#4d2d1c' }}>
                   {item.precip}%
-                </span>
-            </div>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

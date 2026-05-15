@@ -1,75 +1,79 @@
 import { useMemo } from 'react';
-import { getWeatherInfo, getTempColor } from '../utils/weatherCodes';
-import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle } from 'lucide-react';
+import { getWeatherInfo } from '../utils/weatherCodes';
+import { getWeatherIconAsset } from '../utils/weatherIconAssets';
 
-const WeatherIcons = { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle };
-import { CalendarDays } from 'lucide-react';
-
-export default function ForecastList({ weatherData, tempUnit }) {
+export default function ForecastList({ weatherData }) {
   if (!weatherData) return null;
 
   const items = useMemo(() => {
     const d = weatherData.daily;
-    const unitSym = '°';
     const result = [];
+
     for (let i = 0; i < d.time.length && i < 7; i++) {
-      const date = new Date(d.time[i] + 'T12:00:00');
+      const date = new Date(`${d.time[i]}T12:00:00`);
       const dayName = i === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short' });
       const w = getWeatherInfo(d.weather_code[i], true);
+
       result.push({
         key: d.time[i],
         dayName,
-        icon: w.icon,
+        iconSrc: getWeatherIconAsset(w.icon),
         desc: w.desc,
         highTemp: Math.round(d.temperature_2m_max[i]),
         lowTemp: Math.round(d.temperature_2m_min[i]),
-        highColor: getTempColor(d.temperature_2m_max[i], tempUnit),
-        lowColor: getTempColor(d.temperature_2m_min[i], tempUnit),
-        unitSym,
       });
     }
+
     return result;
-  }, [weatherData, tempUnit]);
+  }, [weatherData]);
 
   return (
-    <div className="px-6 pb-4 max-md:px-4 max-md:pb-3">
-      <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
-        <CalendarDays size={14} /> 7-Day Forecast
-      </h3>
-      <div className="flex flex-col gap-1.5">
+    <section className="px-5 pb-4 max-md:px-4 max-md:pb-4">
+      <h2
+        className="mb-3 text-lg font-extrabold leading-none max-md:text-lg"
+        style={{ color: '#3f2a18', letterSpacing: '0' }}
+      >
+        7-Day Forecast
+      </h2>
+
+      <div className="flex flex-col gap-2.5 max-md:gap-2">
         {items.map((item) => (
-          <div
+          <article
             key={item.key}
-            className="flex items-center gap-3 py-2.5 px-3.5 rounded-lg transition-colors max-md:gap-2 max-md:py-2.5 max-md:px-3"
+            className="grid min-h-[50px] grid-cols-[58px_34px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-[14px] px-3.5 py-2 max-md:min-h-[46px] max-md:grid-cols-[52px_30px_minmax(0,1fr)_auto] max-md:gap-2 max-md:rounded-[13px] max-md:px-3 max-md:py-2"
             style={{
-              background: 'var(--bg-input)',
-              border: '1px solid var(--border)',
+              background: 'rgba(255, 252, 245, 0.96)',
+              boxShadow: '0 6px 14px rgba(96, 58, 31, 0.1)',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-input)')}
           >
-            <span className="text-[13px] font-semibold w-12 flex-shrink-0 max-md:w-10 max-md:text-xs">
+            <span className="text-[17px] font-extrabold max-md:text-[18px]" style={{ color: '#4d2d1c' }}>
               {item.dayName}
             </span>
-            <span className="flex justify-center w-9 flex-shrink-0 max-md:w-7 text-[var(--text-primary)]">
-              {(() => {
-                const IconComp = WeatherIcons[item.icon] || WeatherIcons.HelpCircle;
-                return <IconComp size={24} strokeWidth={1.5} />;
-              })()}
-            </span>
+
+            <img
+              src={item.iconSrc}
+              alt={item.desc}
+              className="h-[42px] w-[42px] object-contain max-md:h-[42px] max-md:w-[42px]"
+              style={{ transform: 'scale(1.22)' }}
+              loading="lazy"
+              draggable="false"
+            />
+
             <span
-              className="flex-1 text-[13px] capitalize whitespace-nowrap overflow-hidden text-ellipsis max-md:text-xs"
-              style={{ color: 'var(--text-secondary)' }}
+              className="truncate text-[15px] font-semibold capitalize max-md:text-[17px]"
+              style={{ color: '#4d2d1c' }}
+              title={item.desc}
             >
               {item.desc}
             </span>
-            <div className="flex gap-2 text-sm font-semibold flex-shrink-0 max-md:text-[13px]">
-              <span style={{ color: item.highColor }}>{item.highTemp}{item.unitSym}</span>
-              <span style={{ color: item.lowColor, opacity: 0.7 }}>{item.lowTemp}{item.unitSym}</span>
+
+            <div className="flex items-baseline gap-1.5 text-[16px] font-extrabold max-md:text-[17px]">
+              <span style={{ color: '#bd7a53' }}>{item.highTemp}°</span>
+              <span style={{ color: '#4d2d1c' }}>{item.lowTemp}°</span>
             </div>
-          </div>
+          </article>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

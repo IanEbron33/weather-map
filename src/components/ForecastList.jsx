@@ -46,7 +46,7 @@ export default function ForecastList({ weatherData }) {
               boxShadow: '0 6px 14px rgba(96, 58, 31, 0.1)',
             }}
           >
-            <span className="text-[17px] font-extrabold max-md:text-[18px]" style={{ color: '#4d2d1c' }}>
+            <span className="text-[16px] font-extrabold max-md:text-[17px]" style={{ color: '#4d2d1c' }}>
               {item.dayName}
             </span>
 
@@ -60,14 +60,14 @@ export default function ForecastList({ weatherData }) {
             />
 
             <span
-              className="truncate text-[15px] font-semibold capitalize max-md:text-[17px]"
+              className="truncate text-[14px] font-semibold capitalize max-md:text-[16px]"
               style={{ color: '#4d2d1c' }}
               title={item.desc}
             >
               {item.desc}
             </span>
 
-            <div className="flex items-baseline gap-1.5 text-[16px] font-extrabold max-md:text-[17px]">
+            <div className="flex items-baseline gap-1.5 text-[15px] font-extrabold max-md:text-[16px]">
               <span style={{ color: '#bd7a53' }}>{item.highTemp}°</span>
               <span style={{ color: '#4d2d1c' }}>{item.lowTemp}°</span>
             </div>

@@ -9,7 +9,6 @@ import ForecastList from './ForecastList';
 import RadarControls from './RadarControls';
 import BestTime from './BestTime';
 import Skeleton from './Skeleton';
-import { CloudSun } from 'lucide-react';
 
 // Hook that re-evaluates on resize instead of reading window.innerWidth once at render
 function useIsMobile(breakpoint = 768) {
@@ -72,11 +71,21 @@ export default function Sidebar({
           className="flex items-center justify-between px-6 py-5 flex-shrink-0 sidebar-safe-top max-md:px-5 max-md:py-4 max-[400px]:px-4 max-[400px]:py-3.5"
           style={{ borderBottom: '1px solid var(--border)' }}
         >
-          <div className="flex items-center gap-2.5">
-            <span className="flex items-center justify-center text-[var(--text-primary)]"><CloudSun size={28} /></span>
-            <span className="text-xl font-bold brand-gradient tracking-tight max-[400px]:text-lg">
-              WeatherScope
-            </span>
+          <div className="flex min-w-0 items-center gap-3">
+            <img
+              src="/cloudly-assessts/cloudly-header1.jpg"
+              alt="Cloudly"
+              className="h-14 w-14 flex-shrink-0 rounded-full object-cover"
+              draggable="false"
+            />
+            <div className="min-w-0 leading-tight">
+              <div className="truncate text-[20px] font-extrabold max-[400px]:text-[20px]" style={{ color: '#5b351f' }}>
+                Cloudly
+              </div>
+              <div className="truncate text-[15px] font-bold max-[400px]:text-[15px]" style={{ color: '#8a6b43' }}>
+                a friendly weather companion
+              </div>
+            </div>
           </div>
           <button
             onClick={onToggle}

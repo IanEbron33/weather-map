@@ -368,26 +368,30 @@ export default function App() {
           {weatherData && (
             <button
               onClick={() => setShowAiPanel(p => !p)}
-              className={`ai-panel-btn fixed z-[1002] flex items-center gap-1 px-2.5 py-1 rounded-2xl font-bold text-sm transition-all hover:scale-105 active:scale-95 ${showAiPanel ? 'ai-btn-active' : ''}`}
+              aria-label="Open Cloudly weather assistant"
+              className={`ai-panel-btn fixed z-[1002] flex h-[46px] w-[106px] items-end justify-center rounded-[34px] pb-3 font-extrabold text-[18px] transition-all hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95 max-md:h-[40px] max-md:w-[94px] max-md:pb-2.5 max-md:text-[16px] ${showAiPanel ? 'ai-btn-active' : ''}`}
               style={{
                 bottom: '148px',
                 right: '24px',
                 background: showAiPanel
-                  ? 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)'
-                  : 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
+                  ? 'linear-gradient(180deg, #fff3cd 0%, #d8b85f 100%)'
+                  : 'linear-gradient(180deg, #fff8dd 0%, #d9ba63 100%)',
                 border: showAiPanel
-                  ? '1px solid rgba(185, 151, 91, 0.5)'
-                  : '1px solid rgba(185, 151, 91, 0.5)',
+                  ? '1px solid rgba(107, 69, 40, 0.42)'
+                  : '1px solid rgba(185, 151, 91, 0.55)',
                 backdropFilter: 'blur(12px)',
-                color: '#fff8e8',
+                color: '#5b351f',
                 boxShadow: showAiPanel
-                  ? '0 8px 32px rgba(107,69,40,0.28)'
-                  : '0 8px 32px rgba(107,69,40,0.28)',
+                  ? '0 16px 38px rgba(107,69,40,0.3), inset 0 1px 0 rgba(255,255,255,0.65)'
+                  : '0 16px 34px rgba(107,69,40,0.24), inset 0 1px 0 rgba(255,255,255,0.7)',
                 transition: 'background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease',
               }}
             >
-              <CloudlyMark size={34} />
-              Cloudly
+              <CloudlyMark
+                size={54}
+                className="pointer-events-none absolute left-1/2 top-[-34px] -translate-x-1/2 drop-shadow-[0_8px_12px_rgba(91,53,31,0.24)] md:top-[-38px] max-md:top-[-38px]"
+              />
+              <span className="drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]">Cloudly</span>
             </button>
           )}
 

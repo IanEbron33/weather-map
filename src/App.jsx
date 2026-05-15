@@ -3,12 +3,12 @@ import SplashScreen from './components/SplashScreen';
 import Sidebar from './components/Sidebar';
 import Toast from './components/Toast';
 import AiSummary from './components/AiSummary';
-import GeminiIcon from './components/GeminiIcon';
 import PagasaBulletin from './components/PagasaBulletin';
 import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeocode } from './utils/api';
 import { isMobile } from './utils/helpers';
 import { X, CloudLightning } from 'lucide-react';
 import FloatingMapControls from './components/FloatingMapControls';
+import CloudlyMark from './components/CloudlyMark';
 
 const WeatherMap = lazy(() => import('./components/WeatherMap'));
 
@@ -95,41 +95,61 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    // Track timeout IDs so we can cancel them on cleanup
     const timeouts = [];
 
     async function init() {
       try {
-        const frames = await fetchRainViewerData();
+        const preloadTyphoonData = fetch(`/api/typhoon?t=${Date.now()}`, { cache: 'no-store' })
+          .then(async (res) => {
+            if (!res.ok) throw new Error(`Typhoon preload failed: ${res.status}`);
+            return res.json();
+          })
+          .then((data) => {
+            if (!cancelled) setTyphoonData(data);
+            return data;
+          })
+          .catch((err) => {
+            console.error('Typhoon preload failed:', err);
+            const fallback = { activeCyclones: [], hasActiveTyphoon: false, error: err.message };
+            if (!cancelled) setTyphoonData(fallback);
+            return fallback;
+          });
+
+        import('./components/WeatherMap').catch((err) => {
+          console.error('WeatherMap preload failed:', err);
+        });
+
+        const framesPromise = fetchRainViewerData();
+        const frames = await framesPromise;
         if (!cancelled) setRadarFrames(frames);
+
+        await preloadTyphoonData;
       } catch (err) {
         console.error('RainViewer load failed:', err);
       }
 
-      timeouts.push(setTimeout(() => {
-        if (!cancelled) setShowSplash(false);
-      }, 1200));
+      if (cancelled || initialFetchDone.current) return;
+      initialFetchDone.current = true;
 
-      timeouts.push(setTimeout(() => {
-        if (cancelled || initialFetchDone.current) return;
-        initialFetchDone.current = true;
+      const params = new URLSearchParams(window.location.search);
+      const urlLat = parseFloat(params.get('lat'));
+      const urlLon = parseFloat(params.get('lon'));
 
-        const params = new URLSearchParams(window.location.search);
-        const urlLat = parseFloat(params.get('lat'));
-        const urlLon = parseFloat(params.get('lon'));
-
-        if (!isNaN(urlLat) && !isNaN(urlLon)) {
-          if (mapRef.current) {
-            mapRef.current.setView([urlLat, urlLon], 10, { animate: true });
-          }
-          handleFetchWeather(urlLat, urlLon);
-        } else {
-          geoLocate();
+      if (!isNaN(urlLat) && !isNaN(urlLon)) {
+        if (mapRef.current) {
+          mapRef.current.setView([urlLat, urlLon], 10, { animate: true });
         }
-      }, 1500));
+        handleFetchWeather(urlLat, urlLon);
+      } else {
+        geoLocate();
+      }
     }
 
     init();
+    timeouts.push(setTimeout(() => {
+      if (!cancelled) setShowSplash(false);
+    }, 5000));
+
     return () => {
       cancelled = true;
       timeouts.forEach(clearTimeout);
@@ -348,7 +368,7 @@ export default function App() {
           {weatherData && (
             <button
               onClick={() => setShowAiPanel(p => !p)}
-              className={`ai-panel-btn fixed z-[1002] flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all hover:scale-105 active:scale-95 ${showAiPanel ? 'ai-btn-active' : ''}`}
+              className={`ai-panel-btn fixed z-[1002] flex items-center gap-1 px-2.5 py-1 rounded-2xl font-bold text-sm transition-all hover:scale-105 active:scale-95 ${showAiPanel ? 'ai-btn-active' : ''}`}
               style={{
                 bottom: '148px',
                 right: '24px',
@@ -366,8 +386,8 @@ export default function App() {
                 transition: 'background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease',
               }}
             >
-              <GeminiIcon size={16} id="btn" />
-              Gemini
+              <CloudlyMark size={34} />
+              Cloudly
             </button>
           )}
 

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Trash2 } from 'lucide-react';
-import GeminiIcon from './GeminiIcon';
+import CloudlyMark from './CloudlyMark';
 
 const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
 const GEMINI_STREAM_URL = (key) =>
@@ -313,8 +313,8 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
           /* Empty state (fades in) */
           <div className="flex flex-col items-center justify-center py-6" style={{ animation: 'fadeIn 0.4s ease' }}>
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                 style={{ background: 'rgba(99,102,241,0.12)' }}>
-              <GeminiIcon size={24} id="chat-empty" />
+                 style={{ background: 'rgba(107,69,40,0.12)' }}>
+              <CloudlyMark size={36} />
             </div>
             <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
               Ask me anything
@@ -346,22 +346,23 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className="max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed"
+                  className="max-w-[86%] px-3.5 py-2.5 rounded-[18px] text-[13px] leading-relaxed shadow-sm"
                   style={msg.role === 'user' ? {
-                    background: '#6366f1',
-                    color: 'white',
+                    background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
+                    color: '#fff8e8',
                     borderBottomRightRadius: '6px',
+                    border: '1px solid rgba(185,151,91,0.25)',
                   } : {
-                    background: 'var(--bg-card)',
-                    border: msg.isError ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--border)',
-                    color: msg.isError ? '#ef4444' : 'var(--text-secondary)',
+                    background: 'rgba(255, 252, 245, 0.98)',
+                    border: msg.isError ? '1px solid rgba(239,68,68,0.24)' : '1px solid rgba(185,151,91,0.28)',
+                    color: msg.isError ? '#ef4444' : '#4d2d1c',
                     borderBottomLeftRadius: '6px',
                   }}
                 >
                   {msg.role === 'assistant' && !msg.isError && (
                     <div className="flex items-center gap-1.5 mb-1">
-                      <GeminiIcon size={12} id={`msg-${i}`} />
-                      <span className="text-[10px] font-semibold" style={{ color: 'var(--text-muted)' }}>Gemini</span>
+                      <CloudlyMark size={14} />
+                      <span className="text-[10px] font-semibold" style={{ color: '#8a6b43' }}>Cloudly</span>
                     </div>
                   )}
 
@@ -413,7 +414,7 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
       <div className="flex-shrink-0 px-4 pb-4 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
         <div
           className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
-          style={{ background: 'var(--bg-input)', border: '1px solid var(--border)' }}
+          style={{ background: 'rgba(255, 252, 245, 0.92)', border: '1px solid rgba(185,151,91,0.28)' }}
         >
           <input
             ref={inputRef}
@@ -431,8 +432,8 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
             disabled={!input.trim() || isStreaming}
             className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
             style={{
-              background: input.trim() && !isStreaming ? '#6366f1' : 'transparent',
-              color: input.trim() && !isStreaming ? 'white' : 'var(--text-muted)',
+              background: input.trim() && !isStreaming ? 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)' : 'transparent',
+              color: input.trim() && !isStreaming ? '#fff8e8' : 'var(--text-muted)',
               opacity: input.trim() && !isStreaming ? 1 : 0.5,
             }}
           >

@@ -66,8 +66,14 @@ function buildTyphoonIconHtml() {
 
 // Track dots are now native CircleMarkers
 
-const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, windUnit = 'kmh', onOpenBulletin }) {
-  const [typhoonData, setTyphoonData] = useState(null);
+const TyphoonLayer = React.memo(function TyphoonLayer({
+  visible,
+  onDataLoaded,
+  windUnit = 'kmh',
+  onOpenBulletin,
+  typhoonData: externalTyphoonData,
+}) {
+  const [typhoonData, setTyphoonData] = useState(externalTyphoonData || null);
   const map = useMap();
 
   const fetchTyphoonData = useCallback(async () => {
@@ -86,6 +92,12 @@ const TyphoonLayer = React.memo(function TyphoonLayer({ visible, onDataLoaded, w
       if (onDataLoaded) onDataLoaded(fallback);
     }
   }, [onDataLoaded]);
+
+  useEffect(() => {
+    if (externalTyphoonData) {
+      setTyphoonData(externalTyphoonData);
+    }
+  }, [externalTyphoonData]);
 
   useEffect(() => {
     if (!visible) return;

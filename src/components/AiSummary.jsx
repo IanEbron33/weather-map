@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Loader2, RefreshCw, BarChart3, MessageCircle } from 'lucide-react';
 import { Cloud, Thermometer, Droplets, ShieldCheck, Sun } from 'lucide-react';
 import { Wind as WindIcon } from 'lucide-react';
-import GeminiIcon from './GeminiIcon';
+import CloudlyMark from './CloudlyMark';
 import AiChat from './AiChat';
 
 const SECTIONS = [
@@ -179,8 +179,8 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
            style={{ borderBottom: '1px solid var(--border)' }}>
         <h3 className="text-[15px] font-bold flex items-center gap-2"
             style={{ color: 'var(--text-primary)' }}>
-          <GeminiIcon size={18} id="panel" />
-          Gemini Weather
+          <CloudlyMark size={22} />
+          Cloudly Weather
         </h3>
       </div>
 

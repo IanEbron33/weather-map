@@ -79,10 +79,10 @@ export default function Sidebar({
               draggable="false"
             />
             <div className="min-w-0 leading-tight">
-              <div className="truncate text-[20px] font-extrabold max-[400px]:text-[20px]" style={{ color: '#5b351f' }}>
+              <div className="truncate text-[22px] font-extrabold max-[400px]:text-[22px]" style={{ color: '#5b351f' }}>
                 Cloudly
               </div>
-              <div className="truncate text-[15px] font-bold max-[400px]:text-[15px]" style={{ color: '#8a6b43' }}>
+              <div className="truncate text-[15px] font-bold max-[400px]:text-[13px]" style={{ color: '#8a6b43' }}>
                 a friendly weather companion
               </div>
             </div>

@@ -168,8 +168,6 @@ export default function HourlyChart({ weatherData, tempUnit }) {
             left: `${x}px`,
             top: `${y}px`,
             transform: 'translate(-50%, -50%)',
-            color: '#3f2a18',
-            filter: 'drop-shadow(0 2px 3px rgba(63,42,24,0.24))'
           }}
         >
           <IconComp size={18} strokeWidth={2} />

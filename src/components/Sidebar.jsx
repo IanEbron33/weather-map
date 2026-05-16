@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import SearchBar from './SearchBar';
 import Favorites from './Favorites';
 import WeatherCard from './WeatherCard';
@@ -24,6 +24,16 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
+const MemoSearchBar = memo(SearchBar);
+const MemoFavorites = memo(Favorites);
+const MemoWeatherCard = memo(WeatherCard);
+const MemoBestTime = memo(BestTime);
+const MemoAirQuality = memo(AirQuality);
+const MemoHourlyChart = memo(HourlyChart);
+const MemoHourlyStrip = memo(HourlyStrip);
+const MemoForecastList = memo(ForecastList);
+const MemoRadarControls = memo(RadarControls);
+
 export default function Sidebar({
   collapsed, onToggle,
   weatherData, aqiData, currentLocation,
@@ -37,6 +47,27 @@ export default function Sidebar({
   showToast,
 }) {
   const isMobile = useIsMobile();
+  const [mountHeavySections, setMountHeavySections] = useState(() => window.innerWidth > 768);
+
+  useEffect(() => {
+    let timer;
+
+    if (!isMobile) {
+      setMountHeavySections(!collapsed);
+      return;
+    }
+
+    if (collapsed) {
+      setMountHeavySections(false);
+      return;
+    }
+
+    timer = window.setTimeout(() => {
+      setMountHeavySections(true);
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [isMobile, collapsed]);
 
   return (
     <>
@@ -46,7 +77,6 @@ export default function Sidebar({
           className="fixed inset-0 z-[1999]"
           style={{
             background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
             animation: 'fadeIn 0.2s ease',
           }}
           onClick={onToggle}
@@ -54,16 +84,19 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`absolute left-0 top-0 bottom-0 h-screen flex flex-col overflow-y-auto overflow-x-hidden z-[1000] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        className={`absolute left-0 top-0 bottom-0 h-screen flex flex-col overflow-y-auto overflow-x-hidden z-[1000]
           w-[380px] min-w-[380px]
           max-[1024px]:w-[340px] max-[1024px]:min-w-[340px]
           max-md:fixed max-md:w-full max-md:min-w-full max-md:h-[100dvh] max-md:z-[2000]
-          ${collapsed ? '-translate-x-full !min-w-0 !w-0' : ''}`}
+          transition-transform ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? '-translate-x-full pointer-events-none' : 'translate-x-0'}`}
         style={{
           background: 'var(--bg-secondary)',
           borderRight: collapsed ? 'none' : '1px solid var(--border)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
+          backdropFilter: isMobile ? 'none' : 'blur(6px)',
+          WebkitBackdropFilter: isMobile ? 'none' : 'blur(6px)',
+          transitionDuration: isMobile ? '180ms' : '300ms',
+          willChange: 'transform',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {/* Header */}
@@ -107,12 +140,12 @@ export default function Sidebar({
           </button>
         </div>
 
-        <SearchBar onSelectLocation={onSelectLocation} showToast={showToast} />
-        <Favorites favorites={favorites} onSelectLocation={onSelectLocation} onRemoveFavorite={onRemoveFavorite} />
+        <MemoSearchBar onSelectLocation={onSelectLocation} showToast={showToast} />
+        <MemoFavorites favorites={favorites} onSelectLocation={onSelectLocation} onRemoveFavorite={onRemoveFavorite} />
 
-        {weatherData ? (
+        {mountHeavySections && weatherData ? (
           <>
-            <WeatherCard
+            <MemoWeatherCard
               weatherData={weatherData}
               currentLocation={currentLocation}
               tempUnit={tempUnit}
@@ -121,23 +154,23 @@ export default function Sidebar({
               onToggleFavorite={onToggleFavorite}
               onShareLocation={onShareLocation}
             />
-            <BestTime weatherData={weatherData} tempUnit={tempUnit} />
-            <AirQuality aqiData={aqiData} />
-            <HourlyChart weatherData={weatherData} tempUnit={tempUnit} />
-            <HourlyStrip weatherData={weatherData} tempUnit={tempUnit} />
-            <ForecastList weatherData={weatherData} tempUnit={tempUnit} />
+            <MemoBestTime weatherData={weatherData} tempUnit={tempUnit} />
+            <MemoAirQuality aqiData={aqiData} />
+            <MemoHourlyChart weatherData={weatherData} tempUnit={tempUnit} />
+            <MemoHourlyStrip weatherData={weatherData} tempUnit={tempUnit} />
+            <MemoForecastList weatherData={weatherData} tempUnit={tempUnit} />
           </>
-        ) : (
+        ) : mountHeavySections ? (
           <div className="px-6 py-4 flex flex-col gap-4">
             <Skeleton height="180px" />
             <Skeleton height="80px" />
             <Skeleton height="140px" />
             <Skeleton height="100px" />
           </div>
-        )}
+        ) : null}
 
         {currentLayerType === 'radar' && radarFrames.length > 0 && (
-          <RadarControls
+          <MemoRadarControls
             radarFrames={radarFrames}
             currentFrameIndex={currentFrameIndex}
             onSetFrameIndex={onSetFrameIndex}

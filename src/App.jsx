@@ -4,7 +4,8 @@ import Sidebar from './components/Sidebar';
 import Toast from './components/Toast';
 import AiSummary from './components/AiSummary';
 import PagasaBulletin from './components/PagasaBulletin';
-import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeocode } from './utils/api';
+import { fetchWeatherData, fetchAirQualityData, fetchRainViewerData, reverseGeocode, fetchTemperatureLabels } from './utils/api';
+import { getInitialTemperatureLabelPoints } from './utils/temperatureLabelPoints';
 import { isMobile } from './utils/helpers';
 import { X, CloudLightning } from 'lucide-react';
 import FloatingMapControls from './components/FloatingMapControls';
@@ -117,6 +118,14 @@ export default function App() {
 
         import('./components/WeatherMap').catch((err) => {
           console.error('WeatherMap preload failed:', err);
+        });
+
+        fetchTemperatureLabels(
+          getInitialTemperatureLabelPoints(isMobile() ? 12 : 24),
+          tempUnitRef.current,
+          isMobile() ? 2 : 4
+        ).catch((err) => {
+          console.warn('Temperature label preload failed:', err);
         });
 
         const framesPromise = fetchRainViewerData();

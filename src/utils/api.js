@@ -1,5 +1,7 @@
 // ===== API Functions =====
 const apiCache = new Map();
+const temperatureLabelCache = new Map();
+const temperatureLabelPending = new Map();
 
 async function fetchWithCache(url, cacheTimeMs = 300000) { // 5 minutes cache
   if (apiCache.has(url)) {
@@ -97,4 +99,76 @@ export async function fetchRainViewerData() {
   const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
   const data = await resp.json();
   return data.radar.past.concat(data.radar.nowcast || []);
+}
+
+async function fetchTemperatureLabel(point, tempUnit) {
+  const cacheKey = `${point.id}:${tempUnit}`;
+  const cached = temperatureLabelCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 900000) {
+    return cached.data;
+  }
+
+  if (temperatureLabelPending.has(cacheKey)) {
+    return temperatureLabelPending.get(cacheKey);
+  }
+
+  const params = new URLSearchParams({
+    latitude: point.lat,
+    longitude: point.lon,
+    current: 'temperature_2m',
+    temperature_unit: tempUnit,
+    timezone: 'auto',
+  });
+
+  const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+  const pending = fetchWithCache(url, 900000).then((data) => {
+    const temperature = data?.current?.temperature_2m;
+    if (typeof temperature !== 'number') {
+      throw new Error(`Temperature unavailable for ${point.id}`);
+    }
+
+    const labelData = {
+      ...point,
+      temperature,
+      unit: tempUnit,
+      fetchedAt: Date.now(),
+    };
+
+    temperatureLabelCache.set(cacheKey, { data: labelData, timestamp: Date.now() });
+    return labelData;
+  }).finally(() => {
+    temperatureLabelPending.delete(cacheKey);
+  });
+
+  temperatureLabelPending.set(cacheKey, pending);
+  return pending;
+}
+
+export async function fetchTemperatureLabels(points, tempUnit, concurrency = 4) {
+  const results = [];
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < points.length) {
+      const point = points[nextIndex++];
+      try {
+        results.push(await fetchTemperatureLabel(point, tempUnit));
+      } catch (err) {
+        console.warn('Temperature label fetch failed:', point.id, err);
+      }
+    }
+  }
+
+  const workerCount = Math.min(concurrency, points.length);
+  await Promise.all(Array.from({ length: workerCount }, worker));
+  return results;
+}
+
+export function getCachedTemperatureLabels(points, tempUnit) {
+  return points
+    .map((point) => {
+      const cached = temperatureLabelCache.get(`${point.id}:${tempUnit}`);
+      return cached && Date.now() - cached.timestamp < 900000 ? cached.data : null;
+    })
+    .filter(Boolean);
 }

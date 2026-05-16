@@ -5,7 +5,9 @@ window.L = L;
 import 'leaflet/dist/leaflet.css';
 import TyphoonLayer from './TyphoonLayer';
 import { getWeatherInfo, getTempStyle, getTempColor, getBackgroundImage } from '../utils/weatherCodes';
-import { formatUnixFull } from '../utils/helpers';
+import { formatUnixFull, isMobile } from '../utils/helpers';
+import { fetchTemperatureLabels, getCachedTemperatureLabels } from '../utils/api';
+import { TEMPERATURE_LABEL_POINTS } from '../utils/temperatureLabelPoints';
 import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle, Wind } from 'lucide-react';
 
 const WeatherIcons = { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle };
@@ -264,6 +266,123 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
   return null;
 }
 
+function TemperatureLabelLayer({ visible, tempUnit }) {
+  const map = useMap();
+  const layerGroupRef = useRef(null);
+  const debounceRef = useRef(null);
+  const requestRef = useRef(0);
+
+  useEffect(() => {
+    if (!layerGroupRef.current) {
+      layerGroupRef.current = L.layerGroup();
+    }
+
+    const labelLayer = layerGroupRef.current;
+    if (visible && !map.hasLayer(labelLayer)) {
+      labelLayer.addTo(map);
+    } else if (!visible && map.hasLayer(labelLayer)) {
+      labelLayer.clearLayers();
+      map.removeLayer(labelLayer);
+    }
+
+    return () => {
+      if (map.hasLayer(labelLayer)) {
+        map.removeLayer(labelLayer);
+      }
+    };
+  }, [map, visible]);
+
+  useEffect(() => {
+    if (!layerGroupRef.current || !visible) return;
+
+    const renderLabels = (labels) => {
+      const unitLabel = tempUnit === 'celsius' ? 'C' : 'F';
+      layerGroupRef.current.clearLayers();
+
+      labels.forEach((label) => {
+        const temperature = Math.round(label.temperature);
+        const marker = L.marker([label.lat, label.lon], {
+          interactive: false,
+          keyboard: false,
+          icon: L.divIcon({
+            className: 'temperature-label-icon',
+            iconSize: [1, 1],
+            iconAnchor: [0, 0],
+            html: `
+              <div class="temperature-label-badge temperature-label-badge-${label.type}">
+                <span class="temperature-label-name">${label.label}</span>
+                <span class="temperature-label-value">${temperature}&deg;${unitLabel}</span>
+              </div>
+            `,
+          }),
+        });
+        marker.addTo(layerGroupRef.current);
+      });
+    };
+
+    const getVisiblePoints = () => {
+      const zoom = map.getZoom();
+      const bounds = map.getBounds().pad(0.18);
+      const center = map.getCenter();
+      const smallScreen = isMobile();
+      const labelType = zoom <= 4 ? 'country' : 'city';
+      const maxLabels = smallScreen
+        ? zoom <= 4 ? 10 : zoom <= 7 ? 14 : 18
+        : zoom <= 4 ? 24 : zoom <= 7 ? 28 : 36;
+
+      return TEMPERATURE_LABEL_POINTS
+        .filter((point) => point.type === labelType && bounds.contains([point.lat, point.lon]))
+        .map((point) => ({
+          ...point,
+          distanceFromCenter: map.distance(center, L.latLng(point.lat, point.lon)),
+        }))
+        .sort((a, b) => {
+          const priorityDelta = b.priority - a.priority;
+          if (Math.abs(priorityDelta) > 8) return priorityDelta;
+          return a.distanceFromCenter - b.distanceFromCenter;
+        })
+        .slice(0, maxLabels);
+    };
+
+    const updateLabels = () => {
+      const requestId = ++requestRef.current;
+      const points = getVisiblePoints();
+      const cachedLabels = getCachedTemperatureLabels(points, tempUnit);
+      renderLabels(cachedLabels);
+
+      const cachedIds = new Set(cachedLabels.map((label) => label.id));
+      const missingPoints = points.filter((point) => !cachedIds.has(point.id));
+      if (!missingPoints.length) return;
+
+      fetchTemperatureLabels(missingPoints, tempUnit, isMobile() ? 2 : 4)
+        .then((freshLabels) => {
+          if (requestId !== requestRef.current || !visible) return;
+          const mergedLabels = [...cachedLabels, ...freshLabels];
+          const order = new Map(points.map((point, index) => [point.id, index]));
+          renderLabels(mergedLabels.sort((a, b) => order.get(a.id) - order.get(b.id)));
+        })
+        .catch((err) => {
+          console.warn('Temperature labels failed to update:', err);
+        });
+    };
+
+    const scheduleUpdate = () => {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(updateLabels, 350);
+    };
+
+    updateLabels();
+    map.on('moveend zoomend', scheduleUpdate);
+
+    return () => {
+      clearTimeout(debounceRef.current);
+      map.off('moveend zoomend', scheduleUpdate);
+    };
+  }, [map, visible, tempUnit]);
+
+  return null;
+}
+
 // ===== Weather marker with popup =====
 function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
   const markerRef = useRef(null);
@@ -440,6 +559,8 @@ const WeatherMap = React.memo(function WeatherMap({
             zIndex={30}
           />
         )}
+
+        <TemperatureLabelLayer visible={isTempLayerActive} tempUnit={tempUnit} />
 
         <WeatherMarker
           location={currentLocation}

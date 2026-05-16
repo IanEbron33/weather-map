@@ -362,17 +362,24 @@ const WeatherMap = React.memo(function WeatherMap({
 }) {
   const [isWindLoading, setWindLoading] = useState(false);
 
-  // Always use a dark base map when weather overlays (temp/wind/radar) are active,
-  // because vibrant colors wash out completely on a light base map.
+  // Wind/radar need a dark base for contrast, while temperature reads best
+  // on a bright neutral canvas similar to weather-model map products.
   const isWeatherLayerActive = currentLayerType !== 'none' && currentLayerType !== 'satellite';
-  const effectiveTheme = isWeatherLayerActive ? 'dark' : theme;
+  const isTempLayerActive = currentLayerType === 'temp';
+  const usesDarkWeatherBase = currentLayerType === 'wind' || currentLayerType === 'radar';
+  const effectiveTheme = isTempLayerActive ? 'light' : usesDarkWeatherBase ? 'dark' : theme;
+  const mapStateClasses = [
+    isWeatherLayerActive ? 'weather-layer-active' : '',
+    isTempLayerActive ? 'temp-layer-active' : '',
+    usesDarkWeatherBase ? 'dark-weather-layer-active' : '',
+  ].filter(Boolean).join(' ');
 
   const tileUrl = effectiveTheme === 'light'
     ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
     : 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
 
   return (
-    <main className={`absolute inset-0 z-[1] overflow-hidden ${isWeatherLayerActive ? 'weather-layer-active' : ''}`}>
+    <main className={`absolute inset-0 z-[1] overflow-hidden ${mapStateClasses}`}>
       <MapContainer
         center={[20, 0]}
         zoom={3}
@@ -388,7 +395,7 @@ const WeatherMap = React.memo(function WeatherMap({
         <InvalidateOnChange sidebarCollapsed={sidebarCollapsed} />
 
         <TileLayer
-          key={theme}
+          key={effectiveTheme}
           url={tileUrl}
           attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           subdomains="abcd"
@@ -397,8 +404,8 @@ const WeatherMap = React.memo(function WeatherMap({
           className="base-map-tiles"
         />
 
-        {/* Highlighted labels layer — show in dark mode OR when weather overlays are active */}
-        {(theme === 'dark' || isWeatherLayerActive) && (
+        {/* Highlighted labels layer — show when the actual base map is dark */}
+        {effectiveTheme === 'dark' && (
           <TileLayer
             key="dark-labels"
             url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png"
@@ -420,6 +427,19 @@ const WeatherMap = React.memo(function WeatherMap({
           setWindLoading={setWindLoading}
           showWindParticles={showWindParticles}
         />
+
+        {/* Temperature labels sit above the heat overlay for readability */}
+        {isTempLayerActive && (
+          <TileLayer
+            key="temp-labels"
+            url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png"
+            subdomains="abcd"
+            maxZoom={18}
+            maxNativeZoom={18}
+            className="temp-map-labels"
+            zIndex={30}
+          />
+        )}
 
         <WeatherMarker
           location={currentLocation}

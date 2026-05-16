@@ -444,8 +444,8 @@ html.light-mode .snowflake {
 }
 
 html.light-mode main:not(.weather-layer-active) .base-map-tiles {
-  /* Reduce harsh white glare and add a very subtle sage/warm tint to match the UI */
-  filter: brightness(0.95) contrast(1.05) sepia(0.1) hue-rotate(40deg);
+  /* Push the light canvas toward a browner khaki without changing the overlay stack */
+  filter: brightness(0.78) contrast(1.06) sepia(0.88) saturate(0.42) hue-rotate(18deg);
 }
 
 main.weather-layer-active .base-map-tiles {

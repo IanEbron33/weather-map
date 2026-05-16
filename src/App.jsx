@@ -13,7 +13,7 @@ import CloudlyMark from './components/CloudlyMark';
 const WeatherMap = lazy(() => import('./components/WeatherMap'));
 
 export default function App() {
-  const [theme, setThemeState] = useState(() => localStorage.getItem('ws_theme') || 'dark');
+  const [theme, setThemeState] = useState(() => localStorage.getItem('ws_theme') || 'light');
   const [tempUnit, setTempUnitState] = useState(() => localStorage.getItem('ws_temp') || 'celsius');
   const [windUnit, setWindUnitState] = useState(() => localStorage.getItem('ws_wind') || 'kmh');
   const [showSplash, setShowSplash] = useState(true);

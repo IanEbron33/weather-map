@@ -80,7 +80,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
               lineWidth: 2.0,
               velocityScale: 0.015,
               colorScale: [
-                '#00ffff', '#00ffaa', '#00ff00', '#aaff00', '#ffff00', '#ffaa00', '#ff5500', '#ff0000', '#ff00ff'
+                '#313695', '#4575b4', '#74add1', '#1b7837', '#fdae61', '#f46d43', '#d73027', '#a50026', '#4a0152'
               ],
             });
           }
@@ -189,54 +189,22 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
           { opacity: 1, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true, className: 'vibrant-wind-layer' }
         ).addTo(map);
 
-        // Country borders ON TOP of wind overlay using crisp GeoJSON
-        const addWindBorders = (data) => {
-          if (layersRef.current['wind']) {
-            layersRef.current['borders'] = L.geoJSON(data, {
-              style: { color: 'rgba(0,0,0,0.4)', weight: 1.5, fillOpacity: 0 },
-              interactive: false
-            }).addTo(map);
-          }
-        };
-
-        if (cachedBordersGeoJSON) {
-          addWindBorders(cachedBordersGeoJSON);
-        } else {
-          fetch('/countries.geo.json')
-            .then(res => res.json())
-            .then(data => {
-              cachedBordersGeoJSON = data;
-              addWindBorders(data);
-            })
-            .catch(err => console.error("Failed to load borders", err));
-        }
+        // Lightweight raster borders ON TOP of wind overlay
+        layersRef.current['borders'] = L.tileLayer(
+          'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png',
+          { subdomains: 'abcd', maxZoom: 18, maxNativeZoom: 18, zIndex: 11, opacity: 0.5, interactive: false }
+        ).addTo(map);
       } else if (layerType === 'temp') {
         layersRef.current['temp'] = L.tileLayer(
           `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${process.env.NEXT_PUBLIC_OWM_API_KEY}`,
           { opacity: 0.95, maxZoom: 18, maxNativeZoom: 6, zIndex: 10, crossOrigin: true, className: 'vibrant-temp-layer' }
         ).addTo(map);
 
-        // Country borders ON TOP of temp overlay using crisp GeoJSON
-        const addTempBorders = (data) => {
-          if (layersRef.current['temp']) {
-            layersRef.current['borders'] = L.geoJSON(data, {
-              style: { color: 'rgba(0,0,0,0.5)', weight: 1.5, fillOpacity: 0 },
-              interactive: false
-            }).addTo(map);
-          }
-        };
-
-        if (cachedBordersGeoJSON) {
-          addTempBorders(cachedBordersGeoJSON);
-        } else {
-          fetch('/countries.geo.json')
-            .then(res => res.json())
-            .then(data => {
-              cachedBordersGeoJSON = data;
-              addTempBorders(data);
-            })
-            .catch(err => console.error("Failed to load borders", err));
-        }
+        // Lightweight raster borders ON TOP of temp overlay (no GeoJSON parsing)
+        layersRef.current['borders'] = L.tileLayer(
+          'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png',
+          { subdomains: 'abcd', maxZoom: 18, maxNativeZoom: 18, zIndex: 11, opacity: 0.5, interactive: false }
+        ).addTo(map);
       }
       return;
     }
@@ -271,6 +239,7 @@ function TemperatureLabelLayer({ visible, tempUnit }) {
   const layerGroupRef = useRef(null);
   const debounceRef = useRef(null);
   const requestRef = useRef(0);
+  const markerCacheRef = useRef(new Map()); // id -> L.marker
 
   useEffect(() => {
     if (!layerGroupRef.current) {
@@ -281,7 +250,8 @@ function TemperatureLabelLayer({ visible, tempUnit }) {
     if (visible && !map.hasLayer(labelLayer)) {
       labelLayer.addTo(map);
     } else if (!visible && map.hasLayer(labelLayer)) {
-      labelLayer.clearLayers();
+      layerGroupRef.current.clearLayers();
+      markerCacheRef.current.clear();
       map.removeLayer(labelLayer);
     }
 
@@ -295,28 +265,55 @@ function TemperatureLabelLayer({ visible, tempUnit }) {
   useEffect(() => {
     if (!layerGroupRef.current || !visible) return;
 
-    const renderLabels = (labels) => {
-      const unitLabel = tempUnit === 'celsius' ? 'C' : 'F';
-      layerGroupRef.current.clearLayers();
+    const unitLabel = tempUnit === 'celsius' ? 'C' : 'F';
 
+    const renderLabels = (labels) => {
+      const layerGroup = layerGroupRef.current;
+      const markerCache = markerCacheRef.current;
+      const incomingIds = new Set(labels.map((l) => l.id));
+
+      // Remove markers no longer visible
+      markerCache.forEach((marker, id) => {
+        if (!incomingIds.has(id)) {
+          layerGroup.removeLayer(marker);
+          markerCache.delete(id);
+        }
+      });
+
+      // Add or update markers
       labels.forEach((label) => {
         const temperature = Math.round(label.temperature);
-        const marker = L.marker([label.lat, label.lon], {
-          interactive: false,
-          keyboard: false,
-          icon: L.divIcon({
+        const html = `
+          <div class="temperature-label-badge temperature-label-badge-${label.type}">
+            <span class="temperature-label-name">${label.label}</span>
+            <span class="temperature-label-value">${temperature}&deg;${unitLabel}</span>
+          </div>
+        `;
+
+        if (markerCache.has(label.id)) {
+          // Reuse existing marker — just update its icon HTML
+          const existing = markerCache.get(label.id);
+          existing.setIcon(L.divIcon({
             className: 'temperature-label-icon',
             iconSize: [1, 1],
             iconAnchor: [0, 0],
-            html: `
-              <div class="temperature-label-badge temperature-label-badge-${label.type}">
-                <span class="temperature-label-name">${label.label}</span>
-                <span class="temperature-label-value">${temperature}&deg;${unitLabel}</span>
-              </div>
-            `,
-          }),
-        });
-        marker.addTo(layerGroupRef.current);
+            html,
+          }));
+        } else {
+          // Create a new marker and cache it
+          const marker = L.marker([label.lat, label.lon], {
+            interactive: false,
+            keyboard: false,
+            icon: L.divIcon({
+              className: 'temperature-label-icon',
+              iconSize: [1, 1],
+              iconAnchor: [0, 0],
+              html,
+            }),
+          });
+          marker.addTo(layerGroup);
+          markerCache.set(label.id, marker);
+        }
       });
     };
 
@@ -485,8 +482,9 @@ const WeatherMap = React.memo(function WeatherMap({
   // on a bright neutral canvas similar to weather-model map products.
   const isWeatherLayerActive = currentLayerType !== 'none' && currentLayerType !== 'satellite';
   const isTempLayerActive = currentLayerType === 'temp';
-  const usesDarkWeatherBase = currentLayerType === 'wind' || currentLayerType === 'radar';
-  const effectiveTheme = isTempLayerActive ? 'light' : usesDarkWeatherBase ? 'dark' : theme;
+  const isWindLayerActive = currentLayerType === 'wind';
+  const usesDarkWeatherBase = currentLayerType === 'radar';
+  const effectiveTheme = (isTempLayerActive || isWindLayerActive) ? 'light' : usesDarkWeatherBase ? 'dark' : theme;
   const mapStateClasses = [
     isWeatherLayerActive ? 'weather-layer-active' : '',
     isTempLayerActive ? 'temp-layer-active' : '',
@@ -547,10 +545,10 @@ const WeatherMap = React.memo(function WeatherMap({
           showWindParticles={showWindParticles}
         />
 
-        {/* Temperature labels sit above the heat overlay for readability */}
-        {isTempLayerActive && (
+        {/* Temperature or Wind labels sit above the heat overlay for readability */}
+        {(isTempLayerActive || isWindLayerActive) && (
           <TileLayer
-            key="temp-labels"
+            key="light-labels"
             url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png"
             subdomains="abcd"
             maxZoom={18}

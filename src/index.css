@@ -459,8 +459,9 @@ main.temp-layer-active .base-map-tiles {
 }
 
 .vibrant-temp-layer {
+  will-change: transform;
   opacity: 1 !important;
-  filter: saturate(1.5) contrast(1.08) brightness(1) !important;
+  filter: saturate(1.2) !important;
 }
 
 .vibrant-wind-layer {
@@ -813,7 +814,7 @@ html.light-mode .leaflet-control-attribution {
   height: 8px;
   width: 100%;
   border-radius: 4px;
-  background: linear-gradient(to right, #00ffff, #00ffaa, #00ff00, #aaff00, #ffff00, #ffaa00, #ff5500, #ff0000, #ff00ff);
+  background: linear-gradient(to right, #313695, #4575b4, #74add1, #1b7837, #fdae61, #f46d43, #d73027, #a50026, #4a0152);
 }
 
 /* ===== Range Slider ===== */

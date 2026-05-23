@@ -354,7 +354,7 @@ function TemperatureLabelLayer({ visible, tempUnit }) {
       const missingPoints = points.filter((point) => !cachedIds.has(point.id));
       if (!missingPoints.length) return;
 
-      fetchTemperatureLabels(missingPoints, tempUnit, isMobile() ? 2 : 4)
+      fetchTemperatureLabels(missingPoints, tempUnit)
         .then((freshLabels) => {
           if (requestId !== requestRef.current || !visible) return;
           const mergedLabels = [...cachedLabels, ...freshLabels];

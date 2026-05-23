@@ -1,7 +1,6 @@
 // ===== API Functions =====
 const apiCache = new Map();
 const temperatureLabelCache = new Map();
-const temperatureLabelPending = new Map();
 
 async function fetchWithCache(url, cacheTimeMs = 300000) { // 5 minutes cache
   if (apiCache.has(url)) {
@@ -101,67 +100,53 @@ export async function fetchRainViewerData() {
   return data.radar.past.concat(data.radar.nowcast || []);
 }
 
-async function fetchTemperatureLabel(point, tempUnit) {
-  const cacheKey = `${point.id}:${tempUnit}`;
-  const cached = temperatureLabelCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < 900000) {
-    return cached.data;
-  }
+export async function fetchTemperatureLabels(points, tempUnit) {
+  if (!points || points.length === 0) return [];
 
-  if (temperatureLabelPending.has(cacheKey)) {
-    return temperatureLabelPending.get(cacheKey);
-  }
+  const lats = points.map((p) => p.lat).join(',');
+  const lons = points.map((p) => p.lon).join(',');
 
   const params = new URLSearchParams({
-    latitude: point.lat,
-    longitude: point.lon,
+    latitude: lats,
+    longitude: lons,
     current: 'temperature_2m',
     temperature_unit: tempUnit,
     timezone: 'auto',
   });
 
   const url = `https://api.open-meteo.com/v1/forecast?${params}`;
-  const pending = fetchWithCache(url, 900000).then((data) => {
-    const temperature = data?.current?.temperature_2m;
-    if (typeof temperature !== 'number') {
-      throw new Error(`Temperature unavailable for ${point.id}`);
-    }
 
-    const labelData = {
-      ...point,
-      temperature,
-      unit: tempUnit,
-      fetchedAt: Date.now(),
-    };
+  try {
+    const data = await fetchWithCache(url, 900000);
+    const resultsData = Array.isArray(data) ? data : [data];
+    const now = Date.now();
+    const fetchedLabels = [];
 
-    temperatureLabelCache.set(cacheKey, { data: labelData, timestamp: Date.now() });
-    return labelData;
-  }).finally(() => {
-    temperatureLabelPending.delete(cacheKey);
-  });
+    resultsData.forEach((res, index) => {
+      const point = points[index];
+      const temperature = res?.current?.temperature_2m;
 
-  temperatureLabelPending.set(cacheKey, pending);
-  return pending;
-}
-
-export async function fetchTemperatureLabels(points, tempUnit, concurrency = 4) {
-  const results = [];
-  let nextIndex = 0;
-
-  async function worker() {
-    while (nextIndex < points.length) {
-      const point = points[nextIndex++];
-      try {
-        results.push(await fetchTemperatureLabel(point, tempUnit));
-      } catch (err) {
-        console.warn('Temperature label fetch failed:', point.id, err);
+      if (typeof temperature !== 'number') {
+        console.warn(`Temperature unavailable for ${point.id}`);
+        return;
       }
-    }
-  }
 
-  const workerCount = Math.min(concurrency, points.length);
-  await Promise.all(Array.from({ length: workerCount }, worker));
-  return results;
+      const labelData = {
+        ...point,
+        temperature,
+        unit: tempUnit,
+        fetchedAt: now,
+      };
+
+      temperatureLabelCache.set(`${point.id}:${tempUnit}`, { data: labelData, timestamp: now });
+      fetchedLabels.push(labelData);
+    });
+
+    return fetchedLabels;
+  } catch (err) {
+    console.error('Bulk temperature fetch failed:', err);
+    return [];
+  }
 }
 
 export function getCachedTemperatureLabels(points, tempUnit) {

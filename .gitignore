@@ -25,4 +25,8 @@ dist-ssr
 *.sw?
 
 .next
-agents/
+agents
+*.obsidian
+Bug Tracker and Error Logs.md
+*obsidian
+*travis-ci.org

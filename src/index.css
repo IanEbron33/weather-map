@@ -254,6 +254,15 @@ input {
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
+.chat-suggestion-chip {
+  transition: all 0.2s ease;
+}
+
+.chat-suggestion-chip:hover {
+  border-color: #4d2d1c !important;
+  color: #4d2d1c !important;
+}
+
 /* AI button glow pulse when panel is open */
 .ai-btn-active {
   animation: aiGlow 2s ease-in-out infinite;

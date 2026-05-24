@@ -316,10 +316,10 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
                  style={{ background: 'rgba(107,69,40,0.12)' }}>
               <CloudlyMark size={36} />
             </div>
-            <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+            <p className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
               Ask me anything
             </p>
-            <p className="text-xs mb-4 text-center" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs mb-4 text-center" style={{ color: 'var(--text-primary)' }}>
               I have full context about the weather in {city}.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
@@ -327,8 +327,7 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
                 <button
                   key={s}
                   onClick={() => { setInput(s); inputRef.current?.focus(); }}
-                  className="text-[11px] px-3 py-1.5 rounded-full transition-all hover:scale-105"
-                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+                  className="text-[11px] px-3 py-1.5 rounded-full hover:scale-105 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] chat-suggestion-chip"
                 >
                   {s}
                 </button>

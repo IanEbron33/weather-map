@@ -37,7 +37,7 @@ export default function FloatingMapControls({
   return (
     <div
       ref={containerRef}
-      className="fixed z-[1001] flex items-start gap-2 transition-all duration-300 max-md:top-20 max-md:right-4"
+      className="fixed z-[1001] flex items-start gap-2 transition-all duration-300 max-md:hidden"
       style={{ top: '24px', right: '24px' }}
     >
       <div

@@ -87,18 +87,26 @@ export default function Sidebar({
         className={`absolute left-0 top-0 bottom-0 h-screen flex flex-col overflow-y-auto overflow-x-hidden z-[1000]
           w-[380px] min-w-[380px]
           max-[1024px]:w-[340px] max-[1024px]:min-w-[340px]
-          max-md:fixed max-md:w-full max-md:min-w-full max-md:h-[100dvh] max-md:z-[2000]
-          transition-transform ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? '-translate-x-full pointer-events-none' : 'translate-x-0'}`}
+          ${isMobile
+            ? `sidebar-mobile-sheet max-md:z-[2000] ${collapsed ? 'sidebar-mobile-sheet-hidden' : ''}`
+            : `transition-transform ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? '-translate-x-full pointer-events-none' : 'translate-x-0'}`
+          }`}
         style={{
           background: 'var(--bg-secondary)',
-          borderRight: collapsed ? 'none' : '1px solid var(--border)',
+          borderRight: (!isMobile && collapsed) ? 'none' : (!isMobile ? '1px solid var(--border)' : 'none'),
           backdropFilter: isMobile ? 'none' : 'blur(6px)',
           WebkitBackdropFilter: isMobile ? 'none' : 'blur(6px)',
-          transitionDuration: isMobile ? '180ms' : '300ms',
+          transitionDuration: isMobile ? '0ms' : '300ms',
           willChange: 'transform',
           WebkitOverflowScrolling: 'touch',
         }}
       >
+        {/* Mobile drag handle */}
+        {isMobile && (
+          <div className="sidebar-sheet-handle">
+            <div className="sidebar-sheet-handle-bar" />
+          </div>
+        )}
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-5 flex-shrink-0 sidebar-safe-top max-md:px-5 max-md:py-4 max-[400px]:px-4 max-[400px]:py-3.5"
@@ -135,7 +143,11 @@ export default function Sidebar({
             aria-label="Toggle sidebar"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              {isMobile ? (
+                <path d="M4 7L10 13L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              ) : (
+                <path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              )}
             </svg>
           </button>
         </div>

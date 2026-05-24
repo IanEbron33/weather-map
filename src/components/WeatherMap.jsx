@@ -586,7 +586,7 @@ const WeatherMap = React.memo(function WeatherMap({
       {/* Locate */}
       <button
         onClick={onGeoLocate}
-        className="absolute bottom-6 right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-24 max-md:right-4 max-md:w-11 max-md:h-11"
+        className="absolute bottom-6 right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:hidden"
         style={{
           background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
           border: '1px solid rgba(185,151,91,0.5)',
@@ -606,7 +606,7 @@ const WeatherMap = React.memo(function WeatherMap({
       {/* Theme toggle */}
       <button
         onClick={onToggleTheme}
-        className="absolute bottom-[84px] right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-[150px] max-md:right-4 max-md:w-11 max-md:h-11"
+        className="absolute bottom-[84px] right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-auto max-md:top-20 max-md:right-4 max-md:w-11 max-md:h-11"
         style={{
           background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
           border: '1px solid rgba(185,151,91,0.5)',
@@ -639,7 +639,7 @@ const WeatherMap = React.memo(function WeatherMap({
       {sidebarCollapsed && (
         <button
           onClick={onToggleSidebar}
-          className="absolute top-4 left-4 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:top-3 max-md:left-3 max-md:w-12 max-md:h-12"
+          className="absolute top-4 left-4 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:hidden"
           style={{
             background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
             border: '1px solid var(--border)',

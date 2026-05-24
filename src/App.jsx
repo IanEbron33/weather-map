@@ -10,6 +10,8 @@ import { isMobile } from './utils/helpers';
 import { X, CloudLightning } from 'lucide-react';
 import FloatingMapControls from './components/FloatingMapControls';
 import CloudlyMark from './components/CloudlyMark';
+import MobileBottomNav from './components/MobileBottomNav';
+import MapLayerSheet from './components/MapLayerSheet';
 
 const WeatherMap = lazy(() => import('./components/WeatherMap'));
 
@@ -35,6 +37,7 @@ export default function App() {
   const [showWindParticles, setShowWindParticles] = useState(false);
   const [typhoonData, setTyphoonData] = useState(null);
   const [showPagasaBulletin, setShowPagasaBulletin] = useState(false);
+  const [showMapLayerSheet, setShowMapLayerSheet] = useState(false);
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
   const lastTyphoonStatusRef = useRef('');
@@ -373,12 +376,12 @@ export default function App() {
             onClose={() => setShowPagasaBulletin(false)}
           />
 
-          {/* Floating AI Summary Button — fixed bottom right */}
+          {/* Floating AI Summary Button — desktop only, hidden on mobile */}
           {weatherData && (
             <button
               onClick={() => setShowAiPanel(p => !p)}
               aria-label="Open Cloudly weather assistant"
-              className={`ai-panel-btn fixed z-[1002] flex h-[46px] w-[106px] items-end justify-center rounded-[34px] pb-3 font-extrabold text-[18px] transition-all hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95 max-md:h-[40px] max-md:w-[94px] max-md:pb-2.5 max-md:text-[16px] ${showAiPanel ? 'ai-btn-active' : ''}`}
+              className={`ai-panel-btn fixed z-[1002] flex h-[46px] w-[106px] items-end justify-center rounded-[34px] pb-3 font-extrabold text-[18px] transition-all hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95 max-md:hidden ${showAiPanel ? 'ai-btn-active' : ''}`}
               style={{
                 bottom: '148px',
                 right: '24px',
@@ -398,25 +401,25 @@ export default function App() {
             >
               <CloudlyMark
                 size={54}
-                className="pointer-events-none absolute left-1/2 top-[-34px] -translate-x-1/2 drop-shadow-[0_8px_12px_rgba(91,53,31,0.24)] md:top-[-38px] max-md:top-[-38px]"
+                className="pointer-events-none absolute left-1/2 top-[-34px] -translate-x-1/2 drop-shadow-[0_8px_12px_rgba(91,53,31,0.24)] md:top-[-38px]"
               />
               <span className="drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]">Cloudly</span>
             </button>
           )}
 
           {/* Mobile backdrop — fades in smoothly */}
-          {showAiPanel && (
+          {weatherData && (
             <div
-              className="ai-panel-backdrop fixed inset-0 z-[1003] md:hidden"
+              className={`ai-panel-backdrop fixed inset-0 z-[2001] md:hidden ${showAiPanel ? 'ai-panel-backdrop-open' : 'ai-panel-backdrop-closed'}`}
               style={{ background: 'rgba(0,0,0,0.45)' }}
               onClick={() => setShowAiPanel(false)}
             />
           )}
 
           {/* AI Summary Panel */}
-          {showAiPanel && weatherData && (
+          {weatherData && (
             <div
-              className="ai-panel ai-panel-enter fixed z-[1004]"
+              className={`ai-panel fixed z-[2002] ${showAiPanel ? 'ai-panel-open' : 'ai-panel-closed'}`}
               style={{
                 top: '50%',
                 right: '24px',
@@ -464,6 +467,51 @@ export default function App() {
             </div>
           )}
 
+
+          {/* Mobile Bottom Navigation Bar */}
+          <MobileBottomNav
+            sidebarOpen={!sidebarCollapsed}
+            aiPanelOpen={showAiPanel}
+            mapLayerSheetOpen={showMapLayerSheet}
+            onToggleSidebar={() => {
+              if (sidebarCollapsed) {
+                setShowAiPanel(false);
+                setShowMapLayerSheet(false);
+              }
+              toggleSidebar();
+            }}
+            onToggleAiPanel={() => {
+              if (!showAiPanel) {
+                if (!sidebarCollapsed) toggleSidebar();
+                setShowMapLayerSheet(false);
+              }
+              setShowAiPanel(p => !p);
+            }}
+            onGeoLocate={geoLocate}
+            onToggleMapLayerSheet={() => {
+              if (!showMapLayerSheet) {
+                if (!sidebarCollapsed) toggleSidebar();
+                setShowAiPanel(false);
+              }
+              setShowMapLayerSheet(p => !p);
+            }}
+          />
+
+          {/* Map Layer Bottom Sheet (mobile) */}
+          <MapLayerSheet
+            visible={showMapLayerSheet}
+            onClose={() => setShowMapLayerSheet(false)}
+            currentLayerType={currentLayerType}
+            onSetLayerType={setCurrentLayerType}
+            showTyphoonLayer={showTyphoonLayer}
+            onToggleTyphoonLayer={() => setShowTyphoonLayer(p => !p)}
+            tempUnit={tempUnit}
+            onSetTempUnit={setTempUnit}
+            windUnit={windUnit}
+            onSetWindUnit={setWindUnit}
+            showWindParticles={showWindParticles}
+            setShowWindParticles={setShowWindParticles}
+          />
 
           <Toast toast={toast} />
         </div>

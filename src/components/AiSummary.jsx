@@ -185,16 +185,39 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
       </div>
 
       {/* Tab Bar */}
-      <div className="flex px-4 pt-3 pb-1 gap-1 flex-shrink-0">
+      <div className="relative flex gap-1 flex-shrink-0"
+           style={{
+             background: 'rgba(107, 69, 40, 0.04)',
+             border: '1px solid var(--border)',
+             borderRadius: '14px',
+             padding: '4px',
+             margin: '12px 16px 4px',
+           }}>
+        {/* Sliding Indicator */}
+        <div style={{
+          position: 'absolute',
+          top: '4px',
+          left: '4px',
+          width: 'calc((100% - 8px - 4px) / 2)',
+          height: 'calc(100% - 8px)',
+          background: 'var(--accent-primary, #6366f1)',
+          borderRadius: '10px',
+          transition: 'transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transform: activeTab === 'overview' ? 'translateX(0)' : 'translateX(calc(100% + 4px))',
+          zIndex: 0,
+        }} />
+
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className="ai-tab-btn flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-semibold"
+            className="ai-tab-btn flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[12px] font-semibold"
             style={{
-              background: activeTab === id ? 'var(--accent-primary, #6366f1)' : 'var(--bg-card)',
-              color: activeTab === id ? 'white' : 'var(--text-muted)',
-              border: activeTab === id ? '1px solid var(--accent-primary, #6366f1)' : '1px solid var(--border)',
+              background: 'transparent',
+              color: activeTab === id ? 'white' : 'var(--text-secondary)',
+              border: '1px solid transparent',
+              transition: 'color 0.22s ease',
+              zIndex: 1,
             }}
           >
             <Icon size={13} />
@@ -205,7 +228,7 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
 
       {/* Tab Content — key forces remount + animation on every tab switch */}
       <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
-        <div key={activeTab} style={{ animation: 'tabSlide 0.22s cubic-bezier(0.4,0,0.2,1)', height: '100%' }}>
+        <div key={activeTab} style={{ animation: 'tabSlide 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)', height: '100%' }}>
         {activeTab === 'overview' ? (
           /* ===== OVERVIEW TAB ===== */
           <div>

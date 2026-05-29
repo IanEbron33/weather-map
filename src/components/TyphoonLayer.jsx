@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Marker, Polyline, Circle, Popup, useMap, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
+import { isMobile } from '../utils/helpers';
 
 function getCycloneColor(category = '') {
   const cat = category.toLowerCase();
@@ -71,6 +72,7 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
   onDataLoaded,
   windUnit = 'kmh',
   onOpenBulletin,
+  bulletinVisible,
   typhoonData: externalTyphoonData,
 }) {
   const [typhoonData, setTyphoonData] = useState(externalTyphoonData || null);
@@ -288,54 +290,61 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
               icon={typhoonIcon}
               zIndexOffset={1000}
             >
-              <Popup minWidth={280} maxWidth={340}>
+              <Popup minWidth={isMobile() ? 220 : 280} maxWidth={isMobile() ? 260 : 340}>
                 <div style={{ fontFamily: 'Quicksand,sans-serif', margin: '-4px -4px 0', padding: 0 }}>
                   {/* Header */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile() ? '6px' : '10px', marginBottom: isMobile() ? '6px' : '10px' }}>
                     <img
                       src="/typhoon-icon.png"
                       className="typhoon-spiral"
-                      style={{ width: '30px', height: '30px', maxWidth: '30px', maxHeight: '30px', objectFit: 'contain', filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.4))' }}
+                      style={{
+                        width: isMobile() ? '24px' : '30px',
+                        height: isMobile() ? '24px' : '30px',
+                        maxWidth: isMobile() ? '24px' : '30px',
+                        maxHeight: isMobile() ? '24px' : '30px',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.4))'
+                      }}
                       alt="Typhoon"
                     />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 800, fontSize: '16px', color, lineHeight: '1.2' }}>
+                      <div style={{ fontWeight: 800, fontSize: isMobile() ? '13px' : '16px', color, lineHeight: '1.2' }}>
                         {displayName}
                       </div>
                       {hasPagasa && intlName.toUpperCase() !== displayName.toUpperCase() && (
-                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>
+                        <div style={{ fontSize: isMobile() ? '9px' : '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
                           International: {intlName}
                         </div>
                       )}
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>{cyclone.category}</div>
+                      <div style={{ fontSize: isMobile() ? '9px' : '11px', color: 'var(--text-secondary)' }}>{cyclone.category}</div>
                     </div>
                   </div>
 
                   {/* Source + PAR badges */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile() ? '6px' : '10px', gap: '6px', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                       {hasPagasa && (
                         <div style={{
-                          fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '4px',
-                          background: 'rgba(59,130,246,0.1)', color: '#3b82f6',
-                          border: '1px solid rgba(59,130,246,0.2)', letterSpacing: '0.3px'
+                          fontSize: isMobile() ? '8px' : '9px', fontWeight: 800, padding: isMobile() ? '1px 5px' : '2px 7px', borderRadius: '4px',
+                          background: 'rgba(107,69,40,0.12)', color: '#6b4528',
+                          border: '1px solid rgba(107,69,40,0.18)', letterSpacing: '0.3px'
                         }}>
                           PAGASA
                         </div>
                       )}
                       <div style={{
-                        fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '4px',
-                        background: 'rgba(148,163,184,0.1)', color: '#94a3b8',
-                        border: '1px solid rgba(148,163,184,0.15)', letterSpacing: '0.3px'
+                        fontSize: isMobile() ? '8px' : '9px', fontWeight: 800, padding: isMobile() ? '1px 5px' : '2px 7px', borderRadius: '4px',
+                        background: 'rgba(138,108,71,0.08)', color: 'var(--text-muted)',
+                        border: '1px solid rgba(138,108,71,0.15)', letterSpacing: '0.3px'
                       }}>
                         GDACS
                       </div>
                     </div>
                     <div style={{
-                      fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
-                      background: inPAR ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)',
-                      color: inPAR ? '#ef4444' : '#94a3b8',
-                      border: inPAR ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(148,163,184,0.2)'
+                      fontSize: isMobile() ? '8px' : '10px', fontWeight: 800, padding: isMobile() ? '1px 6px' : '2px 8px', borderRadius: '4px',
+                      background: inPAR ? 'rgba(197,72,34,0.1)' : 'rgba(138,108,71,0.08)',
+                      color: inPAR ? '#c54822' : 'var(--text-muted)',
+                      border: inPAR ? '1px solid rgba(197,72,34,0.25)' : '1px solid rgba(138,108,71,0.15)'
                     }}>
                       {inPAR ? 'INSIDE PAR' : 'OUTSIDE PAR'}
                     </div>
@@ -344,10 +353,10 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
                   {/* PAGASA Issued At */}
                   {hasPagasa && pg.issuedAt && (
                     <div style={{
-                      fontSize: '10px', color: '#94a3b8', marginBottom: '8px',
+                      fontSize: isMobile() ? '9px' : '10px', color: 'var(--text-muted)', marginBottom: '8px',
                       display: 'flex', alignItems: 'center', gap: '4px'
                     }}>
-                      <span style={{ fontSize: '10px' }}>🕐</span>
+                      <span style={{ fontSize: isMobile() ? '9px' : '10px' }}>🕐</span>
                       Issued at {pg.issuedAt}
                     </div>
                   )}
@@ -355,9 +364,9 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
                   {/* Summary Headline from PAGASA */}
                   {hasPagasa && pg.summary && (
                     <div style={{
-                      fontSize: '11px', fontWeight: 700, color: '#fbbf24',
-                      lineHeight: '1.45', padding: '7px 9px', marginBottom: '8px',
-                      background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.12)',
+                      fontSize: isMobile() ? '9px' : '11px', fontWeight: 700, color: '#b25e15',
+                      lineHeight: '1.45', padding: isMobile() ? '5px 7px' : '7px 9px', marginBottom: isMobile() ? '6px' : '8px',
+                      background: 'rgba(201,120,47,0.08)', border: '1px solid rgba(201,120,47,0.18)',
                       borderRadius: '6px',
                     }}>
                       {pg.summary}
@@ -366,23 +375,23 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
 
                   {/* Stats Grid — PAGASA official data or GDACS fallback */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: '8px' }}>
-                    <div style={{ background: 'rgba(239,68,68,0.08)', borderRadius: '8px', padding: '6px 8px' }}>
-                      <div style={{ color: '#64748b', fontSize: '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>
+                    <div style={{ background: 'rgba(107,69,40,0.06)', borderRadius: '8px', padding: isMobile() ? '4px 6px' : '6px 8px' }}>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: isMobile() ? '8px' : '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>
                         Max Winds
                       </div>
-                      <div style={{ fontWeight: 700, color, fontSize: '13px' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: isMobile() ? '11px' : '13px' }}>
                         {displayWindLabel}
                       </div>
                     </div>
-                    <div style={{ background: 'rgba(239,68,68,0.08)', borderRadius: '8px', padding: '6px 8px' }}>
-                      <div style={{ color: '#64748b', fontSize: '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>
+                    <div style={{ background: 'rgba(107,69,40,0.06)', borderRadius: '8px', padding: isMobile() ? '4px 6px' : '6px 8px' }}>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: isMobile() ? '8px' : '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>
                         {displayGustLabel ? 'Gusts' : 'Alert Level'}
                       </div>
                       <div style={{
-                        fontWeight: 700, fontSize: '13px',
-                        color: displayGustLabel ? color : (
-                          cyclone.alertLevel.toLowerCase() === 'green' ? '#22c55e' :
-                            cyclone.alertLevel.toLowerCase() === 'orange' ? '#f97316' : '#ef4444'
+                        fontWeight: 700, fontSize: isMobile() ? '11px' : '13px',
+                        color: displayGustLabel ? 'var(--text-primary)' : (
+                          cyclone.alertLevel.toLowerCase() === 'green' ? '#7c8a45' :
+                            cyclone.alertLevel.toLowerCase() === 'orange' ? '#c9782f' : '#b25e15'
                         )
                       }}>
                         {displayGustLabel || cyclone.alertLevel}
@@ -392,17 +401,17 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
 
                   {/* Movement & Location from PAGASA */}
                   {hasPagasa && (pg.movement || pg.currentPosition) && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: isMobile() ? '8px' : '12px' }}>
                       {pg.movement && (
-                        <div style={{ background: 'rgba(59,130,246,0.06)', borderRadius: '8px', padding: '6px 8px' }}>
-                          <div style={{ color: '#64748b', fontSize: '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>Movement</div>
-                          <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: '11px', lineHeight: '1.3' }}>{pg.movement.split('at')[0]}</div>
+                        <div style={{ background: 'rgba(107,69,40,0.06)', borderRadius: '8px', padding: isMobile() ? '4px 6px' : '6px 8px' }}>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: isMobile() ? '8px' : '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>Movement</div>
+                          <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: isMobile() ? '9px' : '11px', lineHeight: '1.3' }}>{pg.movement.split('at')[0]}</div>
                         </div>
                       )}
                       {pg.currentPosition && (
-                        <div style={{ background: 'rgba(34,197,94,0.06)', borderRadius: '8px', padding: '6px 8px' }}>
-                          <div style={{ color: '#64748b', fontSize: '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>Location</div>
-                          <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: '10px', lineHeight: '1.3' }}>
+                        <div style={{ background: 'rgba(107,69,40,0.06)', borderRadius: '8px', padding: isMobile() ? '4px 6px' : '6px 8px' }}>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: isMobile() ? '8px' : '9px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px', letterSpacing: '0.3px' }}>Location</div>
+                          <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: isMobile() ? '9px' : '10px', lineHeight: '1.3' }}>
                             {pg.currentPosition.substring(0, 40)}{pg.currentPosition.length > 40 ? '...' : ''}
                           </div>
                         </div>
@@ -420,10 +429,10 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
                       }}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                        background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white',
-                        fontSize: '11px', fontWeight: 700, padding: '8px 10px',
+                        background: 'linear-gradient(135deg, #c9782f 0%, #a85f1e 100%)', color: 'white',
+                        fontSize: isMobile() ? '10px' : '11px', fontWeight: 700, padding: isMobile() ? '6px 8px' : '8px 10px',
                         borderRadius: '8px', border: 'none', cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(239,68,68,0.3)',
+                        boxShadow: '0 4px 12px rgba(201,120,47,0.3)',
                         transition: 'transform 0.1s'
                       }}
                       onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.96)'}
@@ -439,10 +448,10 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
                       rel="noopener noreferrer"
                       style={{
                         display: 'block', textAlign: 'center',
-                        background: 'rgba(148,163,184,0.1)', color: '#cbd5e1',
-                        fontSize: '10px', fontWeight: 700, padding: '6px 8px',
+                        background: 'var(--bg-primary)', color: 'var(--text-secondary)',
+                        fontSize: isMobile() ? '9px' : '10px', fontWeight: 700, padding: isMobile() ? '5px 6px' : '6px 8px',
                         borderRadius: '6px', textDecoration: 'none',
-                        border: '1px solid rgba(148,163,184,0.2)',
+                        border: '1px solid var(--border)',
                       }}
                     >
                       View GDACS Report
@@ -450,7 +459,7 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
                   )}
 
                   {/* Data Source footer */}
-                  <div style={{ marginTop: '8px', fontSize: '9px', color: '#475569', textAlign: 'center' }}>
+                  <div style={{ marginTop: '8px', fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
                     Track: GDACS/JTWC{hasPagasa ? ' • Details: DOST-PAGASA' : ''}
                   </div>
                 </div>
@@ -460,8 +469,8 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
         );
       })}
 
-      {/* Top warning badge */}
-      {hasActiveTyphoon && (() => {
+      {/* Top warning badge — hidden on mobile when bulletin sheet is open */}
+      {hasActiveTyphoon && !(isMobile() && bulletinVisible) && (() => {
         const first = typhoonData.activeCyclones[0];
         const pg = first.pagasa;
         const badgeName = pg?.localName || first.name;
@@ -470,7 +479,7 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
 
         return (
           <div
-            className="warning-badge absolute top-6 left-1/2 z-[1000] px-4 py-2.5 rounded-2xl flex items-center gap-3 pointer-events-auto"
+            className="warning-badge absolute top-6 left-1/2 z-[1000] px-3 md:px-4 py-1.5 md:py-2.5 rounded-2xl flex items-center gap-2 md:gap-3 pointer-events-auto w-max max-w-[90vw] md:max-w-xl"
             style={{
               background: 'rgba(231, 214, 173, 0.96)',
               border: '1px solid rgba(185, 151, 91, 0.95)',
@@ -478,27 +487,34 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
               boxShadow: '0 12px 32px rgba(107, 69, 40, 0.18)'
             }}
           >
-            <div className="w-3 h-3 rounded-full" style={{ background: badgeColor, boxShadow: `0 0 10px rgba(185, 151, 91, 0.35)`, animation: 'pulse 1.5s infinite' }} />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: '#6b4528' }}>
-                Active Warning
+            <div className="w-3 h-3 md:w-3 md:h-3 rounded-full flex-shrink-0" style={{ background: '#ef4444', boxShadow: `0 0 10px rgba(239, 68, 68, 0.45)`, animation: 'pulse 1.5s infinite' }} />
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-[8px] md:text-[10px] font-extrabold uppercase tracking-widest flex items-center gap-1 whitespace-nowrap" style={{ color: '#6b4528' }}>
+                <span>Active Warning</span>
+                <span style={{ opacity: 0.5 }}>•</span>
+                <span style={{ textTransform: 'capitalize', fontWeight: 700, letterSpacing: '0.02em' }}>{badgeCategory.toLowerCase()}</span>
               </span>
-              <span className="text-sm font-bold tracking-wide" style={{ color: '#4b2f1d' }}>
-                {badgeCategory.toUpperCase()} {badgeName.toUpperCase()}
-                {pg && first.name.toUpperCase() !== badgeName.toUpperCase() && (
-                  <span style={{ fontSize: '11px', color: '#6f5536', fontWeight: 600 }}> ({first.name})</span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="truncate text-xs md:text-sm font-bold tracking-wide" style={{ color: '#4b2f1d' }} title={`${badgeCategory.toUpperCase()} ${badgeName.toUpperCase()}${pg && first.name.toUpperCase() !== badgeName.toUpperCase() ? ` (${first.name})` : ''}`}>
+                  {badgeName.toUpperCase()}
+                  {pg && first.name.toUpperCase() !== badgeName.toUpperCase() && (
+                    <span style={{ fontSize: '10px', color: '#6f5536', fontWeight: 600 }}> ({first.name})</span>
+                  )}
+                </span>
+                {pg && (
+                  <span
+                    className="text-[8px] md:text-[9px] px-1 py-0.5 rounded font-extrabold flex-shrink-0"
+                    style={{
+                      background: 'rgba(107,69,40,0.12)', color: '#6b4528',
+                      border: '1px solid rgba(107,69,40,0.18)',
+                      lineHeight: '1'
+                    }}
+                  >
+                    PAGASA
+                  </span>
                 )}
-              </span>
-            </div>
-            {pg && (
-              <div style={{
-                fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '4px',
-                background: 'rgba(107,69,40,0.12)', color: '#6b4528',
-                border: '1px solid rgba(107,69,40,0.18)', marginLeft: '4px'
-              }}>
-                PAGASA
               </div>
-            )}
+            </div>
           </div>
         );
       })()}

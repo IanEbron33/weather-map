@@ -347,21 +347,21 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
                 <div
                   className="max-w-[86%] px-3.5 py-2.5 rounded-[18px] text-[13px] leading-relaxed shadow-sm"
                   style={msg.role === 'user' ? {
-                    background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
+                    background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%)',
                     color: '#fff8e8',
                     borderBottomRightRadius: '6px',
-                    border: '1px solid rgba(185,151,91,0.25)',
+                    border: '1px solid rgba(107, 69, 40, 0.2)',
                   } : {
-                    background: 'rgba(255, 252, 245, 0.98)',
-                    border: msg.isError ? '1px solid rgba(239,68,68,0.24)' : '1px solid rgba(185,151,91,0.28)',
-                    color: msg.isError ? '#ef4444' : '#4d2d1c',
+                    background: 'var(--bg-card)',
+                    border: msg.isError ? '1px solid rgba(239,68,68,0.24)' : '1px solid var(--border)',
+                    color: msg.isError ? '#ef4444' : 'var(--text-primary)',
                     borderBottomLeftRadius: '6px',
                   }}
                 >
                   {msg.role === 'assistant' && !msg.isError && (
                     <div className="flex items-center gap-1.5 mb-1">
                       <CloudlyMark size={14} />
-                      <span className="text-[10px] font-semibold" style={{ color: '#8a6b43' }}>Cloudly</span>
+                      <span className="text-[10px] font-semibold" style={{ color: 'var(--accent-primary)' }}>Cloudly</span>
                     </div>
                   )}
 
@@ -413,7 +413,7 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
       <div className="flex-shrink-0 px-4 pb-4 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
         <div
           className="flex items-center gap-2 px-3.5 py-2 rounded-2xl"
-          style={{ background: 'rgba(255, 252, 245, 0.92)', border: '1px solid rgba(185,151,91,0.28)' }}
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
         >
           <input
             ref={inputRef}
@@ -431,7 +431,7 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
             disabled={!input.trim() || isStreaming}
             className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
             style={{
-              background: input.trim() && !isStreaming ? 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)' : 'transparent',
+              background: input.trim() && !isStreaming ? 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary-hover) 100%)' : 'transparent',
               color: input.trim() && !isStreaming ? '#fff8e8' : 'var(--text-muted)',
               opacity: input.trim() && !isStreaming ? 1 : 0.5,
             }}

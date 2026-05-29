@@ -474,7 +474,7 @@ const WeatherMap = React.memo(function WeatherMap({
   mapRef, theme, currentLayerType, radarFrames, currentFrameIndex,
   weatherData, currentLocation, tempUnit, windUnit, sidebarCollapsed,
   onMapClick, onGeoLocate, onToggleTheme, onToggleSidebar,
-  showTyphoonLayer, typhoonData, onTyphoonDataLoaded, onOpenBulletin, showWindParticles
+  showTyphoonLayer, typhoonData, onTyphoonDataLoaded, onOpenBulletin, bulletinVisible, showWindParticles
 }) {
   const [isWindLoading, setWindLoading] = useState(false);
 
@@ -572,6 +572,7 @@ const WeatherMap = React.memo(function WeatherMap({
           onDataLoaded={onTyphoonDataLoaded}
           windUnit={windUnit}
           onOpenBulletin={onOpenBulletin}
+          bulletinVisible={bulletinVisible}
         />
       </MapContainer>
 

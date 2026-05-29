@@ -306,7 +306,15 @@ export default function App() {
               showTyphoonLayer={showTyphoonLayer}
               typhoonData={typhoonData}
               onTyphoonDataLoaded={setTyphoonData}
-              onOpenBulletin={() => setShowPagasaBulletin(true)}
+              onOpenBulletin={() => {
+                if (isMobile()) {
+                  if (!sidebarCollapsed) toggleSidebar();
+                  setShowAiPanel(false);
+                  setShowMapLayerSheet(false);
+                }
+                setShowPagasaBulletin(true);
+              }}
+              bulletinVisible={showPagasaBulletin}
               showWindParticles={showWindParticles}
             />
           </Suspense>
@@ -344,7 +352,14 @@ export default function App() {
           {showTyphoonLayer && (
             <button
               id="pagasa-bulletin-btn"
-              onClick={() => setShowPagasaBulletin(p => !p)}
+              onClick={() => {
+                if (isMobile()) {
+                  if (!sidebarCollapsed) toggleSidebar();
+                  setShowAiPanel(false);
+                  setShowMapLayerSheet(false);
+                }
+                setShowPagasaBulletin(p => !p);
+              }}
               className="fixed z-[1002] flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all hover:scale-105 active:scale-95"
               style={{
                 bottom: '24px',
@@ -477,6 +492,7 @@ export default function App() {
               if (sidebarCollapsed) {
                 setShowAiPanel(false);
                 setShowMapLayerSheet(false);
+                setShowPagasaBulletin(false);
               }
               toggleSidebar();
             }}
@@ -484,6 +500,7 @@ export default function App() {
               if (!showAiPanel) {
                 if (!sidebarCollapsed) toggleSidebar();
                 setShowMapLayerSheet(false);
+                setShowPagasaBulletin(false);
               }
               setShowAiPanel(p => !p);
             }}
@@ -492,6 +509,7 @@ export default function App() {
               if (!showMapLayerSheet) {
                 if (!sidebarCollapsed) toggleSidebar();
                 setShowAiPanel(false);
+                setShowPagasaBulletin(false);
               }
               setShowMapLayerSheet(p => !p);
             }}

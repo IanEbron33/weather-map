@@ -10,3 +10,6 @@
 - Do not assume the state of the codebase from prior sessions — always verify from context.
 
 - Do not use Emojis as icons, use libraries (eg. Lucide icons).
+
+- Don't always update  the `session_context.md` after you modify or change something in the codebase, you will update it only, once I said it.
+

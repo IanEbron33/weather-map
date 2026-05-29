@@ -38,6 +38,9 @@ export default function App() {
   const [typhoonData, setTyphoonData] = useState(null);
   const [showPagasaBulletin, setShowPagasaBulletin] = useState(false);
   const [showMapLayerSheet, setShowMapLayerSheet] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [isLoadingSkeleton, setIsLoadingSkeleton] = useState(false);
+  const switchTimeoutRef = useRef(null);
   const mapRef = useRef(null);
   const initialFetchDone = useRef(false);
   const lastTyphoonStatusRef = useRef('');
@@ -165,6 +168,7 @@ export default function App() {
     return () => {
       cancelled = true;
       timeouts.forEach(clearTimeout);
+      if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
     };
   }, [handleFetchWeather, geoLocate]); // deps are now stable (handleFetchWeather uses refs)
 
@@ -235,8 +239,114 @@ export default function App() {
   }, [currentLocation, showToast]);
 
   const toggleSidebar = useCallback(() => {
+    if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+    setIsSwitching(false);
+    setIsLoadingSkeleton(false);
     setSidebarCollapsed((prev) => !prev);
   }, []);
+
+  const handleCloseAllSheets = useCallback(() => {
+    if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+    setIsSwitching(false);
+    setIsLoadingSkeleton(false);
+    setSidebarCollapsed(true);
+    setShowAiPanel(false);
+    setShowMapLayerSheet(false);
+    setShowPagasaBulletin(false);
+  }, []);
+
+  const handleToggleSidebar = useCallback(() => {
+    if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+
+    const isOpening = sidebarCollapsed;
+    const otherOpen = showAiPanel || showMapLayerSheet || showPagasaBulletin;
+
+    if (isOpening) {
+      if (otherOpen) {
+        setIsSwitching(true);
+        setIsLoadingSkeleton(true);
+        setShowAiPanel(false);
+        setShowMapLayerSheet(false);
+        setShowPagasaBulletin(false);
+        setSidebarCollapsed(false);
+
+        switchTimeoutRef.current = setTimeout(() => {
+          setIsSwitching(false);
+          setIsLoadingSkeleton(false);
+        }, 400);
+      } else {
+        setIsSwitching(false);
+        setIsLoadingSkeleton(false);
+        setSidebarCollapsed(false);
+      }
+    } else {
+      setIsSwitching(false);
+      setIsLoadingSkeleton(false);
+      setSidebarCollapsed(true);
+    }
+  }, [sidebarCollapsed, showAiPanel, showMapLayerSheet, showPagasaBulletin]);
+
+  const handleToggleAiPanel = useCallback(() => {
+    if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+
+    const isOpening = !showAiPanel;
+    const otherOpen = !sidebarCollapsed || showMapLayerSheet || showPagasaBulletin;
+
+    if (isOpening) {
+      if (otherOpen) {
+        setIsSwitching(true);
+        setIsLoadingSkeleton(true);
+        setSidebarCollapsed(true);
+        setShowMapLayerSheet(false);
+        setShowPagasaBulletin(false);
+        setShowAiPanel(true);
+
+        switchTimeoutRef.current = setTimeout(() => {
+          setIsSwitching(false);
+          setIsLoadingSkeleton(false);
+        }, 400);
+      } else {
+        setIsSwitching(false);
+        setIsLoadingSkeleton(false);
+        setShowAiPanel(true);
+      }
+    } else {
+      setIsSwitching(false);
+      setIsLoadingSkeleton(false);
+      setShowAiPanel(false);
+    }
+  }, [sidebarCollapsed, showAiPanel, showMapLayerSheet, showPagasaBulletin]);
+
+  const handleToggleMapLayerSheet = useCallback(() => {
+    if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+
+    const isOpening = !showMapLayerSheet;
+    const otherOpen = !sidebarCollapsed || showAiPanel || showPagasaBulletin;
+
+    if (isOpening) {
+      if (otherOpen) {
+        setIsSwitching(true);
+        setIsLoadingSkeleton(true);
+        setSidebarCollapsed(true);
+        setShowAiPanel(false);
+        setShowPagasaBulletin(false);
+        setShowMapLayerSheet(true);
+
+        switchTimeoutRef.current = setTimeout(() => {
+          setIsSwitching(false);
+          setIsLoadingSkeleton(false);
+        }, 400);
+      } else {
+        setIsSwitching(false);
+        setIsLoadingSkeleton(false);
+        setShowMapLayerSheet(true);
+      }
+    } else {
+      setIsSwitching(false);
+      setIsLoadingSkeleton(false);
+      setShowMapLayerSheet(false);
+    }
+  }, [sidebarCollapsed, showAiPanel, showMapLayerSheet, showPagasaBulletin]);
 
   const handleMapClick = useCallback((lat, lon) => {
     handleFetchWeather(lat, lon);
@@ -261,8 +371,9 @@ export default function App() {
     <>
       <SplashScreen visible={showSplash} />
       {!showSplash && (
-        <div className="h-screen w-screen relative block" style={{ background: 'var(--bg-primary)' }}>
+        <div className={`h-screen w-screen relative block ${isSwitching ? 'mobile-switching' : ''}`} style={{ background: 'var(--bg-primary)' }}>
           <Sidebar
+            showSkeleton={isLoadingSkeleton}
             collapsed={sidebarCollapsed}
             onToggle={toggleSidebar}
             weatherData={weatherData}
@@ -427,7 +538,7 @@ export default function App() {
             <div
               className={`ai-panel-backdrop fixed inset-0 z-[2001] md:hidden ${showAiPanel ? 'ai-panel-backdrop-open' : 'ai-panel-backdrop-closed'}`}
               style={{ background: 'rgba(0,0,0,0.45)' }}
-              onClick={() => setShowAiPanel(false)}
+              onClick={handleCloseAllSheets}
             />
           )}
 
@@ -456,7 +567,7 @@ export default function App() {
                 <div className="w-8" /> {/* spacer */}
                 <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border)' }} />
                 <button
-                  onClick={() => setShowAiPanel(false)}
+                  onClick={handleCloseAllSheets}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all hover:scale-110"
                   style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
                 >
@@ -466,7 +577,7 @@ export default function App() {
 
               {/* Desktop close button */}
               <button
-                onClick={() => setShowAiPanel(false)}
+                onClick={handleCloseAllSheets}
                 className="hidden md:flex absolute top-3 right-3 z-10 w-7 h-7 items-center justify-center rounded-full transition-all hover:scale-110"
                 style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
               >
@@ -478,6 +589,7 @@ export default function App() {
                 aqiData={aqiData}
                 currentLocation={currentLocation}
                 pagasaData={showTyphoonLayer ? typhoonData : null}
+                showSkeleton={isLoadingSkeleton}
               />
             </div>
           )}
@@ -488,37 +600,15 @@ export default function App() {
             sidebarOpen={!sidebarCollapsed}
             aiPanelOpen={showAiPanel}
             mapLayerSheetOpen={showMapLayerSheet}
-            onToggleSidebar={() => {
-              if (sidebarCollapsed) {
-                setShowAiPanel(false);
-                setShowMapLayerSheet(false);
-                setShowPagasaBulletin(false);
-              }
-              toggleSidebar();
-            }}
-            onToggleAiPanel={() => {
-              if (!showAiPanel) {
-                if (!sidebarCollapsed) toggleSidebar();
-                setShowMapLayerSheet(false);
-                setShowPagasaBulletin(false);
-              }
-              setShowAiPanel(p => !p);
-            }}
-            onGeoLocate={geoLocate}
-            onToggleMapLayerSheet={() => {
-              if (!showMapLayerSheet) {
-                if (!sidebarCollapsed) toggleSidebar();
-                setShowAiPanel(false);
-                setShowPagasaBulletin(false);
-              }
-              setShowMapLayerSheet(p => !p);
-            }}
+            onToggleSidebar={handleToggleSidebar}
+            onToggleAiPanel={handleToggleAiPanel}
+            onToggleMapLayerSheet={handleToggleMapLayerSheet}
           />
 
           {/* Map Layer Bottom Sheet (mobile) */}
           <MapLayerSheet
             visible={showMapLayerSheet}
-            onClose={() => setShowMapLayerSheet(false)}
+            onClose={handleCloseAllSheets}
             currentLayerType={currentLayerType}
             onSetLayerType={setCurrentLayerType}
             showTyphoonLayer={showTyphoonLayer}
@@ -529,6 +619,7 @@ export default function App() {
             onSetWindUnit={setWindUnit}
             showWindParticles={showWindParticles}
             setShowWindParticles={setShowWindParticles}
+            showSkeleton={isLoadingSkeleton}
           />
 
           <Toast toast={toast} />

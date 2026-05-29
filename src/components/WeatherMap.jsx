@@ -587,7 +587,7 @@ const WeatherMap = React.memo(function WeatherMap({
       {/* Locate */}
       <button
         onClick={onGeoLocate}
-        className="absolute bottom-6 right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:hidden"
+        className="absolute bottom-6 right-6 z-[1001] w-11 h-11 flex items-center justify-center rounded-xl transition-all hover:scale-105 max-md:bottom-auto max-md:top-[136px] max-md:right-4"
         style={{
           background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
           border: '1px solid rgba(185,151,91,0.5)',

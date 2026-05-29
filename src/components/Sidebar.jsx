@@ -45,6 +45,7 @@ export default function Sidebar({
   onSetLayerType, onSetFrameIndex,
   showTyphoonLayer, onToggleTyphoonLayer,
   showToast,
+  showSkeleton,
 }) {
   const isMobile = useIsMobile();
   const [mountHeavySections, setMountHeavySections] = useState(() => window.innerWidth > 768);
@@ -152,41 +153,72 @@ export default function Sidebar({
           </button>
         </div>
 
-        <MemoSearchBar onSelectLocation={onSelectLocation} showToast={showToast} />
-        <MemoFavorites favorites={favorites} onSelectLocation={onSelectLocation} onRemoveFavorite={onRemoveFavorite} />
+        {showSkeleton ? (
+          <div className="px-6 py-5 flex flex-col gap-4 overflow-y-auto" style={{ minHeight: 0 }}>
+            {/* Search bar placeholder */}
+            <Skeleton height="40px" borderRadius="10px" />
+            
+            {/* Favorites placeholder */}
+            <div className="flex flex-col gap-2 mt-2">
+              <Skeleton height="18px" width="120px" borderRadius="6px" />
+              <div className="flex gap-2">
+                <Skeleton height="32px" width="80px" borderRadius="16px" />
+                <Skeleton height="32px" width="85px" borderRadius="16px" />
+                <Skeleton height="32px" width="70px" borderRadius="16px" />
+              </div>
+            </div>
 
-        {mountHeavySections && weatherData ? (
-          <>
-            <MemoWeatherCard
-              weatherData={weatherData}
-              currentLocation={currentLocation}
-              tempUnit={tempUnit}
-              windUnit={windUnit}
-              isFavorite={isFavorite}
-              onToggleFavorite={onToggleFavorite}
-              onShareLocation={onShareLocation}
-            />
-            <MemoBestTime weatherData={weatherData} tempUnit={tempUnit} />
-            <MemoAirQuality aqiData={aqiData} />
-            <MemoHourlyChart weatherData={weatherData} tempUnit={tempUnit} />
-            <MemoHourlyStrip weatherData={weatherData} tempUnit={tempUnit} />
-            <MemoForecastList weatherData={weatherData} tempUnit={tempUnit} />
-          </>
-        ) : mountHeavySections ? (
-          <div className="px-6 py-4 flex flex-col gap-4">
-            <Skeleton height="180px" />
-            <Skeleton height="80px" />
-            <Skeleton height="140px" />
-            <Skeleton height="100px" />
+            {/* Weather Card placeholder */}
+            <Skeleton height="180px" borderRadius="20px" className="mt-2" />
+
+            {/* Best Time placeholder */}
+            <Skeleton height="76px" borderRadius="16px" />
+
+            {/* AQI placeholder */}
+            <Skeleton height="114px" borderRadius="16px" />
+
+            {/* Hourly charts placeholder */}
+            <Skeleton height="90px" borderRadius="16px" />
           </div>
-        ) : null}
+        ) : (
+          <>
+            <MemoSearchBar onSelectLocation={onSelectLocation} showToast={showToast} />
+            <MemoFavorites favorites={favorites} onSelectLocation={onSelectLocation} onRemoveFavorite={onRemoveFavorite} />
 
-        {currentLayerType === 'radar' && radarFrames.length > 0 && (
-          <MemoRadarControls
-            radarFrames={radarFrames}
-            currentFrameIndex={currentFrameIndex}
-            onSetFrameIndex={onSetFrameIndex}
-          />
+            {mountHeavySections && weatherData ? (
+              <>
+                <MemoWeatherCard
+                  weatherData={weatherData}
+                  currentLocation={currentLocation}
+                  tempUnit={tempUnit}
+                  windUnit={windUnit}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={onToggleFavorite}
+                  onShareLocation={onShareLocation}
+                />
+                <MemoBestTime weatherData={weatherData} tempUnit={tempUnit} />
+                <MemoAirQuality aqiData={aqiData} />
+                <MemoHourlyChart weatherData={weatherData} tempUnit={tempUnit} />
+                <MemoHourlyStrip weatherData={weatherData} tempUnit={tempUnit} />
+                <MemoForecastList weatherData={weatherData} tempUnit={tempUnit} />
+              </>
+            ) : mountHeavySections ? (
+              <div className="px-6 py-4 flex flex-col gap-4">
+                <Skeleton height="180px" />
+                <Skeleton height="80px" />
+                <Skeleton height="140px" />
+                <Skeleton height="100px" />
+              </div>
+            ) : null}
+
+            {currentLayerType === 'radar' && radarFrames.length > 0 && (
+              <MemoRadarControls
+                radarFrames={radarFrames}
+                currentFrameIndex={currentFrameIndex}
+                onSetFrameIndex={onSetFrameIndex}
+              />
+            )}
+          </>
         )}
       </aside>
     </>

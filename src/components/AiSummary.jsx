@@ -4,6 +4,7 @@ import { Cloud, Thermometer, Droplets, ShieldCheck, Sun } from 'lucide-react';
 import { Wind as WindIcon } from 'lucide-react';
 import CloudlyMark from './CloudlyMark';
 import AiChat from './AiChat';
+import Skeleton from './Skeleton';
 
 const SECTIONS = [
   { key: 'weather',     label: 'Weather',      icon: 'cloud'       },
@@ -69,7 +70,7 @@ const TABS = [
   { id: 'chat',     label: 'Chat',     icon: MessageCircle },
 ];
 
-export default function AiSummary({ weatherData, aqiData, currentLocation, pagasaData }) {
+export default function AiSummary({ weatherData, aqiData, currentLocation, pagasaData, showSkeleton }) {
   const city = currentLocation?.city || 'this location';
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -77,6 +78,60 @@ export default function AiSummary({ weatherData, aqiData, currentLocation, pagas
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState('');
   const abortRef = useRef(null);
+
+  const renderOverviewSkeleton = () => (
+    <div className="px-5 py-3 flex flex-col gap-4 animate-pulse">
+      <div className="flex justify-between items-center">
+        <Skeleton width="90px" height="14px" />
+        <Skeleton width="64px" height="24px" borderRadius="12px" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="p-3.5 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] flex flex-col gap-2">
+            <div className="flex items-center gap-1.5">
+              <Skeleton width="14px" height="14px" borderRadius="50%" />
+              <Skeleton width="60px" height="12px" />
+            </div>
+            <Skeleton width="100px" height="18px" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderChatSkeleton = () => (
+    <div className="px-5 py-4 flex flex-col gap-4 h-full animate-pulse" style={{ minHeight: '340px' }}>
+      <div className="flex-1 flex flex-col gap-3 justify-end overflow-hidden pb-4">
+        <div className="flex justify-start">
+          <div className="max-w-[70%] p-3 rounded-2xl rounded-bl-sm bg-[var(--bg-card)] border border-[var(--border)] flex flex-col gap-1.5">
+            <div className="flex items-center gap-1">
+              <Skeleton width="12px" height="12px" borderRadius="50%" />
+              <Skeleton width="40px" height="10px" />
+            </div>
+            <Skeleton width="120px" height="14px" className="mt-1" />
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <div className="max-w-[70%] p-3 rounded-2xl rounded-br-sm bg-[rgba(107,69,40,0.09)] border border-[rgba(185,151,91,0.18)]">
+            <Skeleton width="140px" height="14px" />
+          </div>
+        </div>
+        <div className="flex justify-start">
+          <div className="max-w-[70%] p-3 rounded-2xl rounded-bl-sm bg-[var(--bg-card)] border border-[var(--border)] flex flex-col gap-1.5">
+            <div className="flex items-center gap-1">
+              <Skeleton width="12px" height="12px" borderRadius="50%" />
+              <Skeleton width="40px" height="10px" />
+            </div>
+            <Skeleton width="90px" height="14px" className="mt-1" />
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-2 items-center pb-2">
+        <Skeleton height="36px" borderRadius="18px" className="flex-1" />
+        <Skeleton width="36px" height="36px" borderRadius="12px" />
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     setSections(safeLoadCache(getCacheKey(city)));
@@ -228,88 +283,91 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
 
       {/* Tab Content — key forces remount + animation on every tab switch */}
       <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
-        <div key={activeTab} style={{ animation: 'tabSlide 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)', height: '100%' }}>
-        {activeTab === 'overview' ? (
-          /* ===== OVERVIEW TAB ===== */
-          <div>
-            {/* Action button */}
-            <div className="flex justify-end px-5 pt-3 pb-1">
-              <button
-                onClick={generateSummary}
-                disabled={isStreaming}
-                className="text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 transition-opacity"
-                style={{ background: 'var(--accent-primary)', color: 'white', opacity: isStreaming ? 0.6 : 1 }}
-              >
-                {isStreaming
-                  ? <><Loader2 size={11} className="animate-spin" /> Generating...</>
-                  : sections && Object.keys(sections).length > 0
-                    ? <><RefreshCw size={11} /> Refresh</>
-                    : <> Summarize</>}
-              </button>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div className="text-xs mx-5 my-3 p-3 rounded-lg"
-                   style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
-                {error}
-              </div>
-            )}
-
-            {/* Empty state */}
-            {!isStreaming && !error && (!sections || Object.keys(sections).length === 0) && (
-              <p className="text-xs px-5 py-3" style={{ color: 'var(--text-muted)' }}>
-                Click "Summarize" for an AI-powered weather report for {city}.
-              </p>
-            )}
-
-            {/* Sections — render live as they stream in */}
-            {sections && Object.keys(sections).length > 0 && (
+        {showSkeleton ? (
+          activeTab === 'overview' ? renderOverviewSkeleton() : renderChatSkeleton()
+        ) : (
+          <div key={activeTab} style={{ animation: 'tabSlide 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)', height: '100%' }}>
+            {activeTab === 'overview' ? (
+              /* ===== OVERVIEW TAB ===== */
               <div>
-                {SECTIONS.map(({ key, label, icon }, i) => {
-                  const text = sections[key];
-                  const isLastSection = key === SECTIONS[SECTIONS.length - 1].key;
-                  const isCurrentlyStreaming = isStreaming && !text && i === Object.keys(sections).length;
-                  return text ? (
-                    <div key={key}
-                         className="flex gap-3 px-5 py-3 items-start"
-                         style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', animation: 'fadeIn 0.3s ease' }}>
-                      <div className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center mt-0.5"
-                           style={{ background: 'rgba(99,102,241,0.12)' }}>
-                        <SectionIcon type={icon} />
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-[11px] font-semibold uppercase tracking-widest block mb-0.5"
-                              style={{ color: 'var(--accent-primary)' }}>
-                          {label}
-                        </span>
-                        <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                          {text}
-                          {/* Blinking cursor on the last received section while streaming */}
-                          {isStreaming && isLastSection && (
-                            <span
-                              className="inline-block w-0.5 h-3 ml-0.5 align-middle rounded-sm"
-                              style={{ background: 'var(--text-secondary)', animation: 'blink 0.8s step-end infinite' }}
-                            />
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  ) : null;
-                })}
+                {/* Action button */}
+                <div className="flex justify-end px-5 pt-3 pb-1">
+                  <button
+                    onClick={generateSummary}
+                    disabled={isStreaming}
+                    className="text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 transition-opacity"
+                    style={{ background: 'var(--accent-primary)', color: 'white', opacity: isStreaming ? 0.6 : 1 }}
+                  >
+                    {isStreaming
+                      ? <><Loader2 size={11} className="animate-spin" /> Generating...</>
+                      : sections && Object.keys(sections).length > 0
+                        ? <><RefreshCw size={11} /> Refresh</>
+                        : <> Summarize</>}
+                  </button>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="text-xs mx-5 my-3 p-3 rounded-lg"
+                       style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    {error}
+                  </div>
+                )}
+
+                {/* Empty state */}
+                {!isStreaming && !error && (!sections || Object.keys(sections).length === 0) && (
+                  <p className="text-xs px-5 py-3" style={{ color: 'var(--text-muted)' }}>
+                    Click "Summarize" for an AI-powered weather report for {city}.
+                  </p>
+                )}
+
+                {/* Sections — render live as they stream in */}
+                {sections && Object.keys(sections).length > 0 && (
+                  <div>
+                    {SECTIONS.map(({ key, label, icon }, i) => {
+                      const text = sections[key];
+                      const isLastSection = key === SECTIONS[SECTIONS.length - 1].key;
+                      return text ? (
+                        <div key={key}
+                             className="flex gap-3 px-5 py-3 items-start"
+                             style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', animation: 'fadeIn 0.3s ease' }}>
+                          <div className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center mt-0.5"
+                               style={{ background: 'rgba(99,102,241,0.12)' }}>
+                            <SectionIcon type={icon} />
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-[11px] font-semibold uppercase tracking-widest block mb-0.5"
+                                  style={{ color: 'var(--accent-primary)' }}>
+                              {label}
+                            </span>
+                            <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                              {text}
+                              {/* Blinking cursor on the last received section while streaming */}
+                              {isStreaming && isLastSection && (
+                                <span
+                                  className="inline-block w-0.5 h-3 ml-0.5 align-middle rounded-sm"
+                                  style={{ background: 'var(--text-secondary)', animation: 'blink 0.8s step-end infinite' }}
+                                />
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
+            ) : (
+              /* ===== CHAT TAB ===== */
+              <AiChat
+                weatherData={weatherData}
+                aqiData={aqiData}
+                currentLocation={currentLocation}
+                pagasaData={pagasaData}
+              />
             )}
           </div>
-        ) : (
-          /* ===== CHAT TAB ===== */
-          <AiChat
-            weatherData={weatherData}
-            aqiData={aqiData}
-            currentLocation={currentLocation}
-            pagasaData={pagasaData}
-          />
         )}
-        </div>{/* end animation wrapper */}
       </div>
     </div>
   );

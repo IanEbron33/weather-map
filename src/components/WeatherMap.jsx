@@ -213,6 +213,32 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
     }
 
     if (radarFrames.length > 0) {
+      // Clean up other layers (like temp or wind) from the map & cache
+      Object.keys(layersRef.current).forEach(key => {
+        if (key !== 'radar_precipitation' && key !== 'borders') {
+          if (map.hasLayer(layersRef.current[key])) {
+            map.removeLayer(layersRef.current[key]);
+          }
+          delete layersRef.current[key];
+        }
+      });
+
+      // 1. Add background precipitation heatmap (zIndex 9) for ocean coverage
+      if (!layersRef.current['radar_precipitation']) {
+        layersRef.current['radar_precipitation'] = L.tileLayer(
+          `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${process.env.NEXT_PUBLIC_OWM_API_KEY}`,
+          { opacity: 0.7, maxZoom: 18, maxNativeZoom: 6, zIndex: 9, crossOrigin: true }
+        ).addTo(map);
+      }
+
+      // 2. Add lightweight borders on top of both (zIndex 11)
+      if (!layersRef.current['borders']) {
+        layersRef.current['borders'] = L.tileLayer(
+          'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png',
+          { subdomains: 'abcd', maxZoom: 18, maxNativeZoom: 18, zIndex: 11, opacity: 0.5, interactive: false }
+        ).addTo(map);
+      }
+
       const currentIdx = Math.max(0, Math.min(currentFrameIndex, radarFrames.length - 1));
       const nextIdx = (currentIdx + 1) % radarFrames.length;
       const wanted = new Set([currentIdx, nextIdx]);
@@ -476,17 +502,16 @@ const WeatherMap = React.memo(function WeatherMap({
 }) {
   const [isWindLoading, setWindLoading] = useState(false);
 
-  // Wind/radar need a dark base for contrast, while temperature reads best
-  // on a bright neutral canvas similar to weather-model map products.
+  // All weather overlays (Temp, Wind, Radar) use a bright neutral light base map for visual consistency.
   const isWeatherLayerActive = currentLayerType !== 'none' && currentLayerType !== 'satellite';
   const isTempLayerActive = currentLayerType === 'temp';
   const isWindLayerActive = currentLayerType === 'wind';
-  const usesDarkWeatherBase = currentLayerType === 'radar';
-  const effectiveTheme = (isTempLayerActive || isWindLayerActive) ? 'light' : usesDarkWeatherBase ? 'dark' : theme;
+  const isRadarLayerActive = currentLayerType === 'radar';
+  const effectiveTheme = (isTempLayerActive || isWindLayerActive || isRadarLayerActive) ? 'light' : theme;
   const mapStateClasses = [
     isWeatherLayerActive ? 'weather-layer-active' : '',
     isTempLayerActive ? 'temp-layer-active' : '',
-    usesDarkWeatherBase ? 'dark-weather-layer-active' : '',
+    isRadarLayerActive ? 'radar-layer-active' : '',
   ].filter(Boolean).join(' ');
 
   const tileUrl = effectiveTheme === 'light'

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Layers, CloudRain, Satellite, Wind, Thermometer, Map, Tornado, Activity } from 'lucide-react';
+import { Layers, CloudDrizzle, Satellite, Wind, Thermometer, Map, Tornado, Activity } from 'lucide-react';
 
 export default function FloatingMapControls({
   currentLayerType,
@@ -18,7 +18,7 @@ export default function FloatingMapControls({
 
   const layers = [
     { id: 'none', icon: <Map size={16} />, label: 'Map Only' },
-    { id: 'radar', icon: <CloudRain size={16} />, label: 'Radar' },
+    { id: 'radar', icon: <CloudDrizzle size={16} />, label: 'Rain Radar' },
     { id: 'wind', icon: <Wind size={16} />, label: 'Wind' },
     { id: 'temp', icon: <Thermometer size={16} />, label: 'Temperature' },
     { id: 'satellite', icon: <Satellite size={16} />, label: 'Satellite' },

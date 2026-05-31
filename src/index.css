@@ -471,8 +471,8 @@ html.light-mode main:not(.weather-layer-active) .base-map-tiles {
   filter: brightness(0.78) contrast(1.06) sepia(0.88) saturate(0.42) hue-rotate(18deg);
 }
 
-main.dark-weather-layer-active .base-map-tiles {
-  /* Provide a neutral base map when wind/radar layers are on */
+main.radar-layer-active .base-map-tiles {
+  /* Provide a neutral base map when radar layer is on */
   filter: brightness(0.9) contrast(1.1) grayscale(80%);
 }
 

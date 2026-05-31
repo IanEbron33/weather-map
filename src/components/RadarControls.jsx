@@ -57,7 +57,7 @@ export default function RadarControls({ radarFrames, currentFrameIndex, onSetFra
     >
       {/* Mobile Title */}
       <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] md:hidden">
-        Radar Timeline
+        Rain Radar Timeline
       </h3>
 
       <div className="flex items-center gap-3 flex-shrink-0">

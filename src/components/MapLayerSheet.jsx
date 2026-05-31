@@ -1,9 +1,9 @@
-import { Map, CloudRain, Wind, Thermometer, Satellite, Activity, Tornado, X } from 'lucide-react';
+import { Map, CloudDrizzle, Wind, Thermometer, Satellite, Activity, Tornado, X } from 'lucide-react';
 import Skeleton from './Skeleton';
 
 const layers = [
   { id: 'none', icon: Map, label: 'Map Only' },
-  { id: 'radar', icon: CloudRain, label: 'Radar' },
+  { id: 'radar', icon: CloudDrizzle, label: 'Rain Radar' },
   { id: 'wind', icon: Wind, label: 'Wind' },
   { id: 'temp', icon: Thermometer, label: 'Temperature' },
   { id: 'satellite', icon: Satellite, label: 'Satellite' },

@@ -234,14 +234,13 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
           const frame = radarFrames[idx];
           radarLayersRef.current[idx] = L.tileLayer(
             `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
-            { opacity: 0, maxZoom: 7, zIndex: 10 }
+            { opacity: 0, maxZoom: 18, maxNativeZoom: 12, zIndex: 10 }
           ).addTo(map);
         }
       });
 
       // Set opacity
-      const zoom = map.getZoom();
-      const baseOpacity = zoom > 7 ? 0 : 0.65;
+      const baseOpacity = 0.65;
       Object.entries(radarLayersRef.current).forEach(([key, layer]) => {
         layer.setOpacity(parseInt(key, 10) === currentIdx ? baseOpacity : 0);
       });

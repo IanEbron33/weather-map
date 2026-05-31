@@ -12,6 +12,7 @@ import FloatingMapControls from './components/FloatingMapControls';
 import CloudlyMark from './components/CloudlyMark';
 import MobileBottomNav from './components/MobileBottomNav';
 import MapLayerSheet from './components/MapLayerSheet';
+import RadarControls from './components/RadarControls';
 
 const WeatherMap = lazy(() => import('./components/WeatherMap'));
 
@@ -383,17 +384,12 @@ export default function App() {
             windUnit={windUnit}
             favorites={favorites}
             isFavorite={isFavorite}
-            radarFrames={radarFrames}
-            currentLayerType={currentLayerType}
-            currentFrameIndex={currentFrameIndex}
             onSetTempUnit={setTempUnit}
             onSetWindUnit={setWindUnit}
             onToggleFavorite={toggleFavorite}
             onShareLocation={shareLocation}
             onSelectLocation={handleSelectLocation}
             onRemoveFavorite={handleRemoveFavorite}
-            onSetLayerType={setCurrentLayerType}
-            onSetFrameIndex={setCurrentFrameIndex}
             showTyphoonLayer={showTyphoonLayer}
             onToggleTyphoonLayer={() => setShowTyphoonLayer(p => !p)}
             showToast={showToast}
@@ -621,6 +617,14 @@ export default function App() {
             setShowWindParticles={setShowWindParticles}
             showSkeleton={isLoadingSkeleton}
           />
+
+            {currentLayerType === 'radar' && radarFrames.length > 0 && (
+              <RadarControls
+                radarFrames={radarFrames}
+                currentFrameIndex={currentFrameIndex}
+                onSetFrameIndex={setCurrentFrameIndex}
+              />
+            )}
 
           <Toast toast={toast} />
         </div>

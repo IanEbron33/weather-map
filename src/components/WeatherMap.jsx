@@ -5,7 +5,7 @@ window.L = L;
 import 'leaflet/dist/leaflet.css';
 import TyphoonLayer from './TyphoonLayer';
 import { getWeatherInfo, getTempStyle, getTempColor, getBackgroundImage } from '../utils/weatherCodes';
-import { formatUnixFull, isMobile } from '../utils/helpers';
+import { isMobile } from '../utils/helpers';
 import { fetchTemperatureLabels, getCachedTemperatureLabels } from '../utils/api';
 import { TEMPERATURE_LABEL_POINTS } from '../utils/temperatureLabelPoints';
 import { Sun, Moon, CloudSun, CloudMoon, Cloud, Cloudy, CloudFog, CloudDrizzle, CloudRain, CloudSnow, Snowflake, CloudLightning, Thermometer, HelpCircle, Wind } from 'lucide-react';
@@ -52,6 +52,7 @@ function InvalidateOnChange({ sidebarCollapsed }) {
 function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoonData, showTyphoonLayer, setWindLoading, showWindParticles }) {
   const map = useMap();
   const layersRef = useRef({}); // Store multiple layers
+  const radarLayersRef = useRef({}); // Dedicated store for radar layers to avoid 429 errors
   const velocityLayerRef = useRef(null); // Separate ref for wind particles
   const windDataRef = useRef(null);
   const showWindParticlesRef = useRef(showWindParticles);
@@ -177,6 +178,8 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
     if (layerType !== 'radar') {
       Object.values(layersRef.current).forEach(layer => map.removeLayer(layer));
       layersRef.current = {};
+      Object.values(radarLayersRef.current).forEach(layer => map.removeLayer(layer));
+      radarLayersRef.current = {};
       
       if (layerType === 'satellite') {
         layersRef.current['sat'] = L.tileLayer(
@@ -209,25 +212,40 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
       return;
     }
 
-    // Pre-load all radar frames if they aren't loaded yet
-    if (radarFrames.length > 0 && Object.keys(layersRef.current).length === 0) {
-      radarFrames.forEach((frame, idx) => {
-        const layer = L.tileLayer(
-          `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
-          { opacity: 0, maxZoom: 7, zIndex: 10 }
-        ).addTo(map);
-        layersRef.current[idx] = layer;
+    if (radarFrames.length > 0) {
+      const currentIdx = Math.max(0, Math.min(currentFrameIndex, radarFrames.length - 1));
+      const nextIdx = (currentIdx + 1) % radarFrames.length;
+      const wanted = new Set([currentIdx, nextIdx]);
+
+      // Remove stale layers
+      Object.keys(radarLayersRef.current).forEach(key => {
+        const idx = parseInt(key, 10);
+        if (!wanted.has(idx)) {
+          if (map.hasLayer(radarLayersRef.current[key])) {
+            map.removeLayer(radarLayersRef.current[key]);
+          }
+          delete radarLayersRef.current[key];
+        }
+      });
+
+      // Add missing layers
+      wanted.forEach(idx => {
+        if (!radarLayersRef.current[idx]) {
+          const frame = radarFrames[idx];
+          radarLayersRef.current[idx] = L.tileLayer(
+            `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+            { opacity: 0, maxZoom: 7, zIndex: 10 }
+          ).addTo(map);
+        }
+      });
+
+      // Set opacity
+      const zoom = map.getZoom();
+      const baseOpacity = zoom > 7 ? 0 : 0.65;
+      Object.entries(radarLayersRef.current).forEach(([key, layer]) => {
+        layer.setOpacity(parseInt(key, 10) === currentIdx ? baseOpacity : 0);
       });
     }
-
-    // Toggle opacity for the current frame
-    const zoom = map.getZoom();
-    const baseOpacity = zoom > 7 ? 0 : 0.65;
-    const targetIdx = Math.min(currentFrameIndex, radarFrames.length - 1);
-
-    Object.entries(layersRef.current).forEach(([idx, layer]) => {
-      layer.setOpacity(parseInt(idx) === targetIdx ? baseOpacity : 0);
-    });
 
   }, [layerType, radarFrames, currentFrameIndex, map]);
 
@@ -449,25 +467,6 @@ function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
   );
 }
 
-// ===== Radar time indicator =====
-function RadarTimeIndicator({ layerType, radarFrames, currentFrameIndex }) {
-  if (layerType !== 'radar' || !radarFrames.length) return null;
-  const frame = radarFrames[Math.min(currentFrameIndex, radarFrames.length - 1)];
-
-  return (
-    <div
-      className="absolute bottom-28 left-1/2 -translate-x-1/2 z-[800] px-4 py-2 rounded-lg text-[13px] whitespace-nowrap"
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        color: 'var(--text-secondary)',
-        backdropFilter: 'blur(var(--glass-blur))',
-      }}
-    >
-      Radar — {formatUnixFull(frame.time)}
-    </div>
-  );
-}
 
 // ===== Main WeatherMap component =====
 const WeatherMap = React.memo(function WeatherMap({
@@ -576,12 +575,6 @@ const WeatherMap = React.memo(function WeatherMap({
         />
       </MapContainer>
 
-      {/* Radar time indicator */}
-      <RadarTimeIndicator
-        layerType={currentLayerType}
-        radarFrames={radarFrames}
-        currentFrameIndex={currentFrameIndex}
-      />
 
       {/* Floating buttons */}
       {/* Locate */}

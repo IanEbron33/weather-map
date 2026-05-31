@@ -13,3 +13,4 @@
 
 - Don't always update  the `session_context.md` after you modify or change something in the codebase, you will update it only, once I said it.
 
+- Always create an implementation plan before you implement something in the codebase.

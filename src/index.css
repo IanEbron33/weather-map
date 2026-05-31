@@ -1708,3 +1708,47 @@ input[type="range"]::-moz-range-thumb {
 main.weather-layer-active .highlighted-map-labels {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 1));
 }
+
+/* Custom Radar Range Slider */
+.custom-radar-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--border);
+  outline: none;
+  transition: background 0.15s ease;
+}
+
+.custom-radar-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.1s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.custom-radar-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: var(--accent-primary-hover);
+}
+
+.custom-radar-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease, background-color 0.1s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.custom-radar-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  background: var(--accent-primary-hover);
+}

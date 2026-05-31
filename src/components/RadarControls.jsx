@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { formatUnixShort } from '../utils/helpers';
+import { Play, Pause } from 'lucide-react';
+import { formatUnixShort, formatUnixFull } from '../utils/helpers';
 
 export default function RadarControls({ radarFrames, currentFrameIndex, onSetFrameIndex }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -11,7 +12,7 @@ export default function RadarControls({ radarFrames, currentFrameIndex, onSetFra
       initializedRef.current = true;
       onSetFrameIndex(radarFrames.length - 1);
     }
-  }, [radarFrames.length, onSetFrameIndex]); // onSetFrameIndex now included
+  }, [radarFrames.length, onSetFrameIndex]);
 
   const stopAnimation = useCallback(() => {
     setIsPlaying(false);
@@ -41,60 +42,70 @@ export default function RadarControls({ radarFrames, currentFrameIndex, onSetFra
 
   if (!radarFrames.length) return null;
 
-  const currentTime = formatUnixShort(
-    radarFrames[Math.min(currentFrameIndex, radarFrames.length - 1)].time
-  );
+  const currentIdx = Math.max(0, Math.min(currentFrameIndex, radarFrames.length - 1));
+  const currentFrame = radarFrames[currentIdx];
+  const currentTimeLabel = formatUnixFull(currentFrame.time);
 
   return (
-    <div className="px-6 pb-4 max-md:px-4 max-md:pb-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
+    <div
+      className="radar-timeline-panel fixed z-[1000] left-4 right-4 bottom-[calc(84px+env(safe-area-inset-bottom))] md:bottom-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-auto md:min-w-[580px] flex flex-col md:flex-row md:items-center gap-4 px-5 py-3.5 rounded-2xl shadow-lg border transition-all duration-300"
+      style={{
+        background: 'var(--bg-card)',
+        borderColor: 'var(--border)',
+        color: 'var(--text-primary)',
+      }}
+    >
+      {/* Mobile Title */}
+      <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] md:hidden">
         Radar Timeline
       </h3>
-      <div className="mb-2.5">
+
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <button
+          onClick={toggleAnimation}
+          className="w-10 h-10 md:w-9 md:h-9 flex items-center justify-center rounded-full transition-all text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:scale-95"
+          style={{
+            background: 'var(--bg-input)',
+            border: '1px solid var(--border)',
+          }}
+          title={isPlaying ? "Pause" : "Play"}
+        >
+          {isPlaying ? (
+            <Pause size={16} className="fill-[var(--text-primary)] text-[var(--text-primary)]" />
+          ) : (
+            <Play size={16} className="fill-[var(--text-primary)] text-[var(--text-primary)]" />
+          )}
+        </button>
+
+        {/* Current Active Time Pill */}
+        <div 
+          className="px-3.5 py-1.5 md:py-1 rounded-full text-xs font-bold text-white whitespace-nowrap shadow-sm"
+          style={{
+            background: 'var(--accent-primary)',
+          }}
+        >
+          {currentTimeLabel}
+        </div>
+      </div>
+
+      {/* Slider & Limits */}
+      <div className="flex-grow flex items-center gap-3 min-w-[200px] md:min-w-[340px]">
+        <span className="text-[10px] font-semibold text-[var(--text-muted)] flex-shrink-0">
+          {formatUnixShort(radarFrames[0].time)}
+        </span>
+        
         <input
           type="range"
           min="0"
           max={radarFrames.length - 1}
           value={currentFrameIndex}
-          onChange={(e) => onSetFrameIndex(parseInt(e.target.value))}
-          className="w-full"
+          onChange={(e) => onSetFrameIndex(parseInt(e.target.value, 10))}
+          className="custom-radar-slider flex-grow cursor-pointer"
         />
-        <div className="flex justify-between text-[11px] mt-1.5" style={{ color: 'var(--text-muted)' }}>
-          <span>{formatUnixShort(radarFrames[0].time)}</span>
-          <span className="font-semibold" style={{ color: 'var(--accent-hover)' }}>{currentTime}</span>
-          <span>{formatUnixShort(radarFrames[radarFrames.length - 1].time)}</span>
-        </div>
-      </div>
-      <div className="flex justify-center">
-        <button
-          onClick={toggleAnimation}
-          className="w-10 h-10 flex items-center justify-center rounded-full transition-all max-md:w-12 max-md:h-12"
-          style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-primary)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--accent)';
-            e.currentTarget.style.borderColor = 'var(--accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--bg-card)';
-            e.currentTarget.style.borderColor = 'var(--border)';
-          }}
-          title="Play/Pause"
-        >
-          {isPlaying ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="6" y="4" width="4" height="16" />
-              <rect x="14" y="4" width="4" height="16" />
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5,3 19,12 5,21" />
-            </svg>
-          )}
-        </button>
+
+        <span className="text-[10px] font-semibold text-[var(--text-muted)] flex-shrink-0">
+          {formatUnixShort(radarFrames[radarFrames.length - 1].time)}
+        </span>
       </div>
     </div>
   );

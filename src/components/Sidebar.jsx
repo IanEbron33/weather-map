@@ -6,7 +6,6 @@ import AirQuality from './AirQuality';
 import HourlyChart from './HourlyChart';
 import HourlyStrip from './HourlyStrip';
 import ForecastList from './ForecastList';
-import RadarControls from './RadarControls';
 import BestTime from './BestTime';
 import Skeleton from './Skeleton';
 
@@ -32,18 +31,14 @@ const MemoAirQuality = memo(AirQuality);
 const MemoHourlyChart = memo(HourlyChart);
 const MemoHourlyStrip = memo(HourlyStrip);
 const MemoForecastList = memo(ForecastList);
-const MemoRadarControls = memo(RadarControls);
 
 export default function Sidebar({
   collapsed, onToggle,
   weatherData, aqiData, currentLocation,
   tempUnit, windUnit,
   favorites, isFavorite,
-  radarFrames, currentLayerType, currentFrameIndex,
   onToggleFavorite, onShareLocation,
   onSelectLocation, onRemoveFavorite,
-  onSetLayerType, onSetFrameIndex,
-  showTyphoonLayer, onToggleTyphoonLayer,
   showToast,
   showSkeleton,
 }) {
@@ -210,14 +205,6 @@ export default function Sidebar({
                 <Skeleton height="100px" />
               </div>
             ) : null}
-
-            {currentLayerType === 'radar' && radarFrames.length > 0 && (
-              <MemoRadarControls
-                radarFrames={radarFrames}
-                currentFrameIndex={currentFrameIndex}
-                onSetFrameIndex={onSetFrameIndex}
-              />
-            )}
           </>
         )}
       </aside>

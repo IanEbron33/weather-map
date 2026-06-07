@@ -544,8 +544,8 @@ const WeatherMap = React.memo(function WeatherMap({
           className="base-map-tiles"
         />
 
-        {/* Highlighted labels layer — show when the actual base map is dark */}
-        {effectiveTheme === 'dark' && (
+        {/* Highlighted labels layer — show when the actual base map is dark or in satellite mode */}
+        {(effectiveTheme === 'dark' || currentLayerType === 'satellite') && (
           <TileLayer
             key="dark-labels"
             url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png"

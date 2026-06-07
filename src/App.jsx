@@ -440,16 +440,22 @@ export default function App() {
             setShowWindParticles={setShowWindParticles}
           />
 
-          {/* GDACS Watermark — shown only when Typhoon Tracker is active */}
+          {/* GDACS and PAGASA Watermarks — shown only when Typhoon Tracker is active */}
           {showTyphoonLayer && (
-            <div 
-              className="absolute bottom-6 left-6 z-[900] pointer-events-none transition-all duration-500"
+            <div
+              className="absolute bottom-6 left-6 z-[900] pointer-events-none transition-all duration-500 flex flex-row items-center gap-3 max-md:bottom-auto max-md:top-20 max-md:left-4 max-md:flex-col max-md:items-start max-md:gap-2"
               style={{ animation: 'fadeIn 0.5s ease-out' }}
             >
-              <img 
-                src="/GDACS-Image.jpg" 
-                alt="GDACS Source" 
-                className="h-10 opacity-60 rounded-md grayscale hover:grayscale-0 hover:opacity-100 transition-all shadow-sm"
+              <img
+                src="/GDACS-Image.webp"
+                alt="GDACS Source"
+                className="h-10 max-md:h-7 opacity-65 rounded-md grayscale hover:grayscale-0 hover:opacity-100 transition-all shadow-sm"
+                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+              />
+              <img
+                src="/DOST-PAGASA-LOGO.webp"
+                alt="PAGASA Source"
+                className="h-10 max-md:h-7 opacity-60 rounded-md grayscale hover:grayscale-0 hover:opacity-100 transition-all shadow-sm"
                 style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
               />
             </div>
@@ -618,13 +624,13 @@ export default function App() {
             showSkeleton={isLoadingSkeleton}
           />
 
-            {currentLayerType === 'radar' && radarFrames.length > 0 && (
-              <RadarControls
-                radarFrames={radarFrames}
-                currentFrameIndex={currentFrameIndex}
-                onSetFrameIndex={setCurrentFrameIndex}
-              />
-            )}
+          {currentLayerType === 'radar' && radarFrames.length > 0 && (
+            <RadarControls
+              radarFrames={radarFrames}
+              currentFrameIndex={currentFrameIndex}
+              onSetFrameIndex={setCurrentFrameIndex}
+            />
+          )}
 
           <Toast toast={toast} />
         </div>

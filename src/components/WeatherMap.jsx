@@ -707,7 +707,7 @@ const WeatherMap = React.memo(function WeatherMap({
       {/* Thermal Legend */}
       {currentLayerType === 'temp' && (
         <div
-          className="absolute bottom-[84px] left-6 z-[1000] w-[260px] p-3 px-4 rounded-xl transition-all max-md:bottom-24 max-md:left-4 max-md:w-[220px] max-md:p-2 max-md:px-3"
+          className="absolute bottom-[84px] left-6 z-[1000] w-[260px] p-3 px-4 rounded-xl transition-all max-md:bottom-[calc(84px+env(safe-area-inset-bottom))] max-md:left-4 max-md:w-[220px] max-md:p-2 max-md:px-3"
           style={{
             background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
             border: '1px solid var(--border)',
@@ -739,7 +739,7 @@ const WeatherMap = React.memo(function WeatherMap({
       {/* Wind Legend */}
       {currentLayerType === 'wind' && !isWindLoading && (
         <div
-          className="absolute bottom-[84px] left-6 z-[1000] w-[280px] p-3 px-4 rounded-xl transition-all max-md:bottom-24 max-md:left-4 max-md:w-[240px] max-md:p-2 max-md:px-3"
+          className="absolute bottom-[84px] left-6 z-[1000] w-[280px] p-3 px-4 rounded-xl transition-all max-md:bottom-[calc(84px+env(safe-area-inset-bottom))] max-md:left-4 max-md:w-[240px] max-md:p-2 max-md:px-3"
           style={{
             background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
             border: '1px solid var(--border)',

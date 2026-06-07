@@ -31,13 +31,13 @@ function saveChatHistory(city, messages) {
 }
 
 function buildSystemContext(weatherData, aqiData, city, pagasaData) {
-  const temp     = Math.round(weatherData?.current?.temperature_2m ?? 0);
+  const temp = Math.round(weatherData?.current?.temperature_2m ?? 0);
   const apparent = Math.round(weatherData?.current?.apparent_temperature ?? temp);
   const humidity = weatherData?.current?.relative_humidity_2m ?? 'N/A';
-  const wind     = weatherData?.current?.wind_speed_10m ?? 'N/A';
+  const wind = weatherData?.current?.wind_speed_10m ?? 'N/A';
   const rainProb = weatherData?.hourly?.precipitation_probability?.[0] ?? 0;
-  const aqi      = aqiData?.current?.us_aqi ?? 'N/A';
-  const uv       = aqiData?.current?.uv_index ?? 'N/A';
+  const aqi = aqiData?.current?.us_aqi ?? 'N/A';
+  const uv = aqiData?.current?.uv_index ?? 'N/A';
 
   let typhoonInfo = '';
   if (pagasaData) {
@@ -48,14 +48,19 @@ function buildSystemContext(weatherData, aqiData, city, pagasaData) {
     }
   }
 
-  return `You are a weather-only assistant for WeatherScope, currently showing data for ${city}.
+  return `You are Cloudly, a warm, cheerful, and caring weather-only assistant for WeatherScope in ${city}.
 Current conditions: ${temp}°C(feels ${apparent}°C), ${humidity}%RH, wind ${wind}km/h, rain ${rainProb}%, AQI ${aqi}, UV ${uv}.${typhoonInfo}
+
+Personality & Style:
+- Be friendly, enthusiastic, and speak like a helpful companion.
+- Use natural weather emojis (e.g., ☀️, ☔, 💨, 🌡️, 🌈, ❄️, ⚡) where appropriate.
+- Be empathetic! Provide quick, friendly safety tips or advice based on the weather conditions (e.g., reminding them to stay hydrated if it's hot, wear sunscreen for high UV, or grab an umbrella for rain).
 
 STRICT RULES — you must follow these without exception:
 1. Only answer questions about weather, climate, forecasts, air quality, UV, wind, outdoor safety, or what to wear/bring based on weather.
-2. If the user asks ANYTHING outside of those topics (math, coding, history, general knowledge, etc.), respond ONLY with: "I'm a weather assistant and can only help with weather-related questions. Try asking about the conditions in ${city}!"
+2. If the user asks ANYTHING outside of those topics (math, coding, history, general knowledge, etc.), politely and warmly decline. For example, redirect them with: "I'd love to chat about that, but my sensors are only tuned to track the skies! 🌤️ How about we check the forecast or air quality today?" or similar friendly variations.
 3. Never break character. Never answer off-topic questions even if the user insists.
-4. Reply in plain text only, 2-5 sentences max for weather answers.`;
+4. Reply in plain text only (no markdown formatting, bold text, or bullet points in the message itself), 2-4 sentences max for weather answers.`;
 }
 
 async function streamGemini(apiKey, contents, onChunk, signal) {
@@ -228,8 +233,8 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
 
       const systemCtx = buildSystemContext(weatherData, aqiData, city, pagasaData);
       const contents = [
-        { role: 'user',  parts: [{ text: systemCtx }] },
-        { role: 'model', parts: [{ text: `Hi! I'm your weather assistant for ${city}.` }] },
+        { role: 'user', parts: [{ text: systemCtx }] },
+        { role: 'model', parts: [{ text: `Hi there! I'm Cloudly, your friendly weather assistant for ${city}. Ask me anything about the sky today! 🌤️` }] },
         ...newMessages.slice(-8).map(m => ({
           role: m.role === 'user' ? 'user' : 'model',
           parts: [{ text: m.text }],
@@ -276,7 +281,7 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
   const clearChat = () => {
     if (messages.length === 0 || isClearing) return;
     setIsClearing(true);
-    
+
     // Wait for the fade-out animation to finish before destroying data
     setTimeout(() => {
       abortRef.current?.abort();
@@ -313,14 +318,14 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
           /* Empty state (fades in) */
           <div className="flex flex-col items-center justify-center py-6" style={{ animation: 'fadeIn 0.4s ease' }}>
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                 style={{ background: 'rgba(107,69,40,0.12)' }}>
+              style={{ background: 'rgba(107,69,40,0.12)' }}>
               <CloudlyMark size={36} />
             </div>
             <p className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
               Ask me anything
             </p>
             <p className="text-xs mb-4 text-center" style={{ color: 'var(--text-primary)' }}>
-              I have full context about the weather in {city}.
+              Hi! I'm Cloudly. ☁️ Ask me anything about the weather, forecasts, or what to wear in {city}!
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {suggestions.map((s) => (
@@ -336,10 +341,10 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
           </div>
         ) : (
           /* Message list (animates out on clear) */
-          <div 
+          <div
             className="flex flex-col gap-3"
-            style={{ 
-              animation: isClearing ? 'fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'none' 
+            style={{
+              animation: isClearing ? 'fadeOutDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'none'
             }}
           >
             {messages.map((msg, i) => (
@@ -398,10 +403,12 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
           <button
             onClick={clearChat}
             className="text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 transition-all hover:scale-105"
-            style={{ 
-              color: '#f87171', // Tailwind red-400 (lighter red)
-              background: 'rgba(248, 113, 113, 0.05)', // Extremely faint red background
-              border: '1px solid rgba(248, 113, 113, 0.15)' // Very subtle red border
+            style={{
+              color: '#ffffff', // Pure white text for AAA contrast
+              background: '#c53030', // Solid premium red background
+              border: '1px solid #9b2c2c', // Solid dark red border
+              fontWeight: '600', // Semi-bold text to stand out
+              boxShadow: '0 2px 6px rgba(197, 48, 48, 0.2)', // Subtle red button shadow
             }}
           >
             <Trash2 size={10} /> Clear chat

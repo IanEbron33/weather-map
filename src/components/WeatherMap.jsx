@@ -706,16 +706,7 @@ const WeatherMap = React.memo(function WeatherMap({
 
       {/* Thermal Legend */}
       {currentLayerType === 'temp' && (
-        <div
-          className="absolute bottom-[84px] left-6 z-[1000] w-[260px] p-3 px-4 rounded-xl transition-all max-md:bottom-[calc(84px+env(safe-area-inset-bottom))] max-md:left-4 max-md:w-[220px] max-md:p-2 max-md:px-3"
-          style={{
-            background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
-            border: '1px solid var(--border)',
-            backdropFilter: 'blur(var(--glass-blur))',
-            boxShadow: 'var(--shadow-md)',
-            animation: 'fadeIn 0.3s ease-out'
-          }}
-        >
+        <div className="map-legend-card w-[260px] max-md:w-[220px]">
           <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#fff8e8' }}>
             Temperature Scale
           </div>
@@ -738,16 +729,7 @@ const WeatherMap = React.memo(function WeatherMap({
 
       {/* Wind Legend */}
       {currentLayerType === 'wind' && !isWindLoading && (
-        <div
-          className="absolute bottom-[84px] left-6 z-[1000] w-[280px] p-3 px-4 rounded-xl transition-all max-md:bottom-[calc(84px+env(safe-area-inset-bottom))] max-md:left-4 max-md:w-[240px] max-md:p-2 max-md:px-3"
-          style={{
-            background: 'linear-gradient(135deg, #5e3b25 0%, #7a5535 100%)',
-            border: '1px solid var(--border)',
-            backdropFilter: 'blur(var(--glass-blur))',
-            boxShadow: 'var(--shadow-md)',
-            animation: 'fadeIn 0.3s ease-out'
-          }}
-        >
+        <div className="map-legend-card w-[280px] max-md:w-[240px]">
           <div className="flex justify-between items-center mb-2">
             <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#fff8e8' }}>
               Wind Speed

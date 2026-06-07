@@ -316,7 +316,7 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
 
                 {/* Empty state */}
                 {!isStreaming && !error && (!sections || Object.keys(sections).length === 0) && (
-                  <p className="text-xs px-5 py-3" style={{ color: 'var(--text-muted)' }}>
+                  <p className="text-xs px-5 py-3" style={{ color: 'var(--text-primary)', opacity: 0.8 }}>
                     Click "Summarize" for an AI-powered weather report for {city}.
                   </p>
                 )}
@@ -340,7 +340,7 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
                                   style={{ color: 'var(--accent-primary)' }}>
                               {label}
                             </span>
-                            <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                            <p className="text-[13px] leading-relaxed font-medium" style={{ color: 'var(--text-primary)' }}>
                               {text}
                               {/* Blinking cursor on the last received section while streaming */}
                               {isStreaming && isLastSection && (

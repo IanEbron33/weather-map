@@ -258,134 +258,150 @@ export async function GET(request) {
   const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s total limit
 
   try {
-    const pagasaRes = await fetch(new URL('/api/pagasa-bulletin', request.url), {
-      cache: 'no-store'
-    });
-    const pagasaData = pagasaRes.ok
-      ? await pagasaRes.json()
-      : { bulletins: [], hasBulletin: false, error: `PAGASA fetch failed: ${pagasaRes.status}` };
+    const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
+    
+    // Fetch both in parallel
+    const [pagasaSettled, gdacsSettled] = await Promise.allSettled([
+      fetch(new URL('/api/pagasa-bulletin', request.url), {
+        cache: 'no-store',
+        signal: controller.signal
+      }),
+      fetch(rssUrl, {
+        cache: 'no-store',
+        signal: controller.signal
+      })
+    ]);
 
-    if (!hasVerifiedActivePagasaBulletin(pagasaData)) {
-      return NextResponse.json({
-        activeCyclones: [],
-        hasActiveTyphoon: false,
-        statusMessage: pagasaData?.statusMessage || 'There is no active typhoon',
-        source: 'PAGASA',
-        pagasaSource: pagasaData.source || null,
-        pagasaScrapedAt: pagasaData.scrapedAt || null,
-        pagasaError: pagasaData.error || null,
-      });
+    // Parse PAGASA data
+    let pagasaData = { bulletins: [], hasBulletin: false, error: null };
+    if (pagasaSettled.status === 'fulfilled' && pagasaSettled.value.ok) {
+      try {
+        pagasaData = await pagasaSettled.value.json();
+      } catch (err) {
+        pagasaData.error = `Failed to parse PAGASA: ${err.message}`;
+      }
+    } else {
+      const reason = pagasaSettled.status === 'rejected' ? pagasaSettled.reason?.message : `Status: ${pagasaSettled.value?.status}`;
+      pagasaData.error = `PAGASA fetch failed: ${reason}`;
     }
 
     const pagasaBulletins = pagasaData.bulletins || [];
+    const hasActivePagasa = hasVerifiedActivePagasaBulletin(pagasaData);
 
-    const rssUrl = 'https://www.gdacs.org/xml/rss.xml';
-    const rssRes = await fetch(rssUrl, {
-      cache: 'no-store',
-      signal: controller.signal
-    });
+    // Parse GDACS data
+    let activeCyclones = [];
+    let gdacsError = null;
 
-    if (!rssRes.ok) {
-      const fallbackCyclones = pagasaBulletins.map(buildPagasaFallbackCyclone).filter(Boolean);
-      return NextResponse.json({
-        activeCyclones: fallbackCyclones,
-        hasActiveTyphoon: true,
-        statusMessage: null,
-        source: 'PAGASA',
-        pagasaSource: pagasaData.source || null,
-        pagasaScrapedAt: pagasaData.scrapedAt || null,
-        gdacsError: `GDACS fetch failed: ${rssRes.status}`,
-      });
+    if (gdacsSettled.status === 'fulfilled' && gdacsSettled.value.ok) {
+      try {
+        const rssText = await gdacsSettled.value.text();
+
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+
+        while ((match = itemRegex.exec(rssText)) !== null) {
+          const itemXml = match[1];
+
+          const eventType = (itemXml.match(/<gdacs:eventtype>(.*?)<\/gdacs:eventtype>/) || [])[1];
+          if (eventType !== 'TC') continue;
+
+          const isCurrent = (itemXml.match(/<gdacs:iscurrent>(.*?)<\/gdacs:iscurrent>/) || [])[1];
+          if (isCurrent !== 'true') continue;
+
+          const lat = parseFloat((itemXml.match(/<geo:lat>(.*?)<\/geo:lat>/) || [])[1] || '0');
+          const lon = parseFloat((itemXml.match(/<geo:long>(.*?)<\/geo:long>/) || [])[1] || '0');
+
+          if (!isInWesternPacific(lat, lon)) continue;
+
+          const eventName = (itemXml.match(/<gdacs:eventname>(.*?)<\/gdacs:eventname>/) || [])[1] || 'Unknown';
+          const eventId = (itemXml.match(/<gdacs:eventid>(.*?)<\/gdacs:eventid>/) || [])[1] || '';
+          const episodeId = (itemXml.match(/<gdacs:episodeid>(.*?)<\/gdacs:episodeid>/) || [])[1] || '1';
+          const severityVal = parseFloat((itemXml.match(/<gdacs:severity[^>]*value="([^"]*)"/) || [])[1] || '0');
+          const alertLevel = (itemXml.match(/<gdacs:alertlevel>(.*?)<\/gdacs:alertlevel>/) || [])[1] || 'Green';
+
+          const category = mapSeverityToCategory(severityVal);
+          let projectedPath = await fetchGdacsTrack(eventId, episodeId);
+
+          const nowPoint = {
+            lat,
+            lon,
+            time: 'Now',
+            timestamp: Date.now(),
+            isCurrent: true
+          };
+
+          const history = projectedPath.filter(p => !p.isForecast);
+          const forecast = projectedPath.filter(p => p.isForecast);
+
+          const finalPath = [...history, nowPoint, ...forecast];
+
+          activeCyclones.push({
+            name: eventName.replace(/-\d+$/, ''),
+            internationalName: eventName,
+            category,
+            alertLevel,
+            currentLocation: { lat, lon },
+            windSpeedKmh: Math.round(severityVal),
+            projectedPath: finalPath,
+            gdacsEventId: eventId,
+            sourceUrl: `https://www.gdacs.org/report.aspx?eventtype=TC&eventid=${eventId}`,
+          });
+        }
+      } catch (err) {
+        gdacsError = `Failed to parse GDACS: ${err.message}`;
+      }
+    } else {
+      const reason = gdacsSettled.status === 'rejected' ? gdacsSettled.reason?.message : `Status: ${gdacsSettled.value?.status}`;
+      gdacsError = `GDACS fetch failed: ${reason}`;
     }
 
-    const rssText = await rssRes.text();
-
-    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    const activeCyclones = [];
-    let match;
-
-    while ((match = itemRegex.exec(rssText)) !== null) {
-      const itemXml = match[1];
-
-      const eventType = (itemXml.match(/<gdacs:eventtype>(.*?)<\/gdacs:eventtype>/) || [])[1];
-      if (eventType !== 'TC') continue;
-
-      const isCurrent = (itemXml.match(/<gdacs:iscurrent>(.*?)<\/gdacs:iscurrent>/) || [])[1];
-      if (isCurrent !== 'true') continue;
-
-      const lat = parseFloat((itemXml.match(/<geo:lat>(.*?)<\/geo:lat>/) || [])[1] || '0');
-      const lon = parseFloat((itemXml.match(/<geo:long>(.*?)<\/geo:long>/) || [])[1] || '0');
-
-      if (!isInWesternPacific(lat, lon)) continue;
-
-      const eventName = (itemXml.match(/<gdacs:eventname>(.*?)<\/gdacs:eventname>/) || [])[1] || 'Unknown';
-      const eventId = (itemXml.match(/<gdacs:eventid>(.*?)<\/gdacs:eventid>/) || [])[1] || '';
-      const episodeId = (itemXml.match(/<gdacs:episodeid>(.*?)<\/gdacs:episodeid>/) || [])[1] || '1';
-      const severityVal = parseFloat((itemXml.match(/<gdacs:severity[^>]*value="([^"]*)"/) || [])[1] || '0');
-      const alertLevel = (itemXml.match(/<gdacs:alertlevel>(.*?)<\/gdacs:alertlevel>/) || [])[1] || 'Green';
-
-      const category = mapSeverityToCategory(severityVal);
-      let projectedPath = await fetchGdacsTrack(eventId, episodeId);
-
-      // Find the point in the track closest to 'Now' (RSS time)
-      // or simply add the RSS point to the track if it's missing.
-      const nowPoint = {
-        lat,
-        lon,
-        time: 'Now',
-        timestamp: Date.now(),
-        isCurrent: true
-      };
-
-      // Merge: Keep historical points before now, add now, then forecast points
-      const history = projectedPath.filter(p => !p.isForecast);
-      const forecast = projectedPath.filter(p => p.isForecast);
-
-      const finalPath = [...history, nowPoint, ...forecast];
-
-      activeCyclones.push({
-        name: eventName.replace(/-\d+$/, ''),
-        internationalName: eventName,
-        category,
-        alertLevel,
-        currentLocation: { lat, lon },
-        windSpeedKmh: Math.round(severityVal),
-        projectedPath: finalPath,
-        gdacsEventId: eventId,
-        sourceUrl: `https://www.gdacs.org/report.aspx?eventtype=TC&eventid=${eventId}`,
-      });
+    // Merge/Enrichment:
+    // 1. Enrich GDACS cyclones with PAGASA bulletins if available
+    let enrichedCyclones = activeCyclones;
+    if (pagasaBulletins.length > 0) {
+      enrichedCyclones = matchPagasaToGdacs(activeCyclones, pagasaBulletins);
     }
 
-    const enrichedCyclones = matchPagasaToGdacs(activeCyclones, pagasaBulletins);
+    // 2. Generate fallback cyclones for PAGASA bulletins that didn't match any GDACS cyclone
     const pagasaFallbackCyclones = pagasaBulletins
       .map(buildPagasaFallbackCyclone)
       .filter(Boolean);
+
     const matchedFallbackTitles = new Set(
       enrichedCyclones
         .map(cyclone => cyclone.pagasa?.title)
         .filter(Boolean)
     );
+
     const supplementalCyclones = pagasaFallbackCyclones.filter(
       cyclone => cyclone.pagasa?.title && !matchedFallbackTitles.has(cyclone.pagasa.title)
     );
+
     const finalCyclones = [...enrichedCyclones, ...supplementalCyclones];
 
-    return NextResponse.json({ 
+    // Determine final status
+    const hasActiveTyphoon = finalCyclones.length > 0;
+    const statusMessage = hasActiveTyphoon ? null : (pagasaData.statusMessage || 'There is no active typhoon');
+
+    return NextResponse.json({
       activeCyclones: finalCyclones,
-      hasActiveTyphoon: true,
-      statusMessage: null,
+      hasActiveTyphoon,
+      statusMessage,
       pagasaSource: pagasaData.source || null,
       pagasaScrapedAt: pagasaData.scrapedAt || null,
-      source: 'PAGASA',
+      pagasaError: pagasaData.error || null,
+      gdacsError,
+      source: hasActivePagasa ? 'PAGASA' : 'GDACS',
     });
+
   } catch (err) {
     console.error('[Typhoon API Error]:', err.message);
     return NextResponse.json({
       activeCyclones: [],
       hasActiveTyphoon: false,
-      statusMessage: null,
+      statusMessage: 'There is no active typhoon',
       error: err.message,
-      source: 'PAGASA',
+      source: 'GDACS',
     }, { status: 200 });
   } finally {
     clearTimeout(timeoutId);

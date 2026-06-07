@@ -103,7 +103,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
                   typhoonData.activeCyclones.forEach(cyclone => {
                     const lat0 = parseFloat(cyclone.currentLocation?.lat);
                     const lon0 = parseFloat(cyclone.currentLocation?.lon);
-                    
+
                     let v_max_kmh = cyclone.windSpeedKmh || 120;
                     if (cyclone.pagasaWind) {
                       const match = cyclone.pagasaWind.match(/(\d+)\s*km\/h/i);
@@ -126,8 +126,8 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
                           const R = 6371;
                           const dLat = (lat - lat0) * Math.PI / 180;
                           const dLon = (lon - lon0) * Math.PI / 180;
-                          const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat0 * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-                          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                          const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat0 * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                           const r = R * c;
 
                           if (r < R_out) {
@@ -138,11 +138,11 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
                               v_t = v_max * Math.exp(-(r - R_max) / 200);
                             }
 
-                            const theta = Math.atan2(lat - lat0, (lon - lon0) * Math.cos(lat0 * Math.PI / 180)); 
+                            const theta = Math.atan2(lat - lat0, (lon - lon0) * Math.cos(lat0 * Math.PI / 180));
                             const u_v = -v_t * Math.sin(theta);
                             const v_v = v_t * Math.cos(theta);
-                            const blend = Math.exp(-Math.pow(r / 250, 2)); 
-                            
+                            const blend = Math.exp(-Math.pow(r / 250, 2));
+
                             uData.data[p] = uData.data[p] * (1 - blend) + (u_v * blend);
                             vData.data[p] = vData.data[p] * (1 - blend) + (v_v * blend);
                           }
@@ -180,7 +180,7 @@ function OverlayLayer({ layerType, radarFrames, currentFrameIndex, theme, typhoo
       layersRef.current = {};
       Object.values(radarLayersRef.current).forEach(layer => map.removeLayer(layer));
       radarLayersRef.current = {};
-      
+
       if (layerType === 'satellite') {
         layersRef.current['sat'] = L.tileLayer(
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -453,40 +453,40 @@ function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
   return (
     <Marker ref={markerRef} position={[location.lat, location.lon]} icon={markerIcon}>
       <Popup maxWidth={260} className="weather-popup">
-          <div 
-            className="relative overflow-hidden rounded-xl shadow-2xl"
-            style={{ 
-              fontFamily: 'Quicksand, sans-serif',
-              background: bgImage ? `url(${bgImage}) center/cover no-repeat` : 'var(--bg-card)',
-              width: '230px',
-              padding: '16px',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)',
-            }}
-          >
-            {/* Overlay */}
-            {bgImage && (
-              <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" style={{ zIndex: 0 }} />
-            )}
-  
-            <div className="relative z-[1]">
-              <div className="font-bold text-sm mb-0.5 truncate pr-4">{location.city}</div>
-              <span className="text-3xl font-extrabold mb-1" style={getTempStyle(c.temperature_2m, tempUnit)}>
-                {Math.round(c.temperature_2m)}{unitSym}
-              </span>
-              <div className="text-[12px] capitalize flex items-center gap-1.5 mb-3" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                {(() => {
-                  const IconComp = WeatherIcons[w.icon] || WeatherIcons.HelpCircle;
-                  return <IconComp size={14} />;
-                })()}
-                {w.desc}
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-white/10 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                <span className="flex items-center gap-1">{c.relative_humidity_2m}% Humid</span>
-                <span className="flex items-center gap-1">{c.wind_speed_10m} {wUnit} Wind</span>
-              </div>
+        <div
+          className="relative overflow-hidden rounded-xl shadow-2xl"
+          style={{
+            fontFamily: 'Quicksand, sans-serif',
+            background: bgImage ? `url(${bgImage}) center/cover no-repeat` : 'var(--bg-card)',
+            width: '230px',
+            padding: '16px',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.1)',
+          }}
+        >
+          {/* Overlay */}
+          {bgImage && (
+            <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" style={{ zIndex: 0 }} />
+          )}
+
+          <div className="relative z-[1]">
+            <div className="font-bold text-sm mb-0.5 truncate pr-4">{location.city}</div>
+            <span className="text-3xl font-extrabold mb-1" style={getTempStyle(c.temperature_2m, tempUnit)}>
+              {Math.round(c.temperature_2m)}{unitSym}
+            </span>
+            <div className="text-[12px] capitalize flex items-center gap-1.5 mb-3" style={{ color: 'rgba(255,255,255,0.9)' }}>
+              {(() => {
+                const IconComp = WeatherIcons[w.icon] || WeatherIcons.HelpCircle;
+                return <IconComp size={14} />;
+              })()}
+              {w.desc}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-white/10 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              <span className="flex items-center gap-1">{c.relative_humidity_2m}% Humid</span>
+              <span className="flex items-center gap-1">{c.wind_speed_10m} {wUnit} Wind</span>
             </div>
           </div>
+        </div>
       </Popup>
     </Marker>
   );

@@ -91,6 +91,7 @@ export default function MapLayerSheet({
           <button
             onClick={onClose}
             className="map-layer-sheet-close"
+            aria-label="Close layers sheet"
           >
             <X size={16} />
           </button>

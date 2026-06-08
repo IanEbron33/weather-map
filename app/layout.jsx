@@ -4,7 +4,6 @@ export const viewport = {
   themeColor: '#f7f5f0',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export const metadata = {

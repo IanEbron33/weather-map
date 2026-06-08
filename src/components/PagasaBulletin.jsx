@@ -178,22 +178,31 @@ export default function PagasaBulletin({ visible, onClose }) {
               </span>
             </div>
           )}
-          <button onClick={handleRefresh} disabled={loading} style={{
-            width: '28px', height: '28px', borderRadius: '8px',
-            background: 'var(--bg-modifier-hover)', border: '1px solid var(--border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.2s',
-            color: 'var(--text-secondary)',
-          }}>
+          <button 
+            onClick={handleRefresh} 
+            disabled={loading} 
+            aria-label="Refresh bulletin"
+            style={{
+              width: '28px', height: '28px', borderRadius: '8px',
+              background: 'var(--bg-modifier-hover)', border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 0.2s',
+              color: 'var(--text-secondary)',
+            }}
+          >
             <RefreshCw size={12} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           </button>
-          <button onClick={onClose} style={{
-            width: '28px', height: '28px', borderRadius: '8px',
-            background: 'var(--bg-modifier-hover)', border: '1px solid var(--border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'all 0.2s',
-            color: 'var(--text-secondary)',
-          }}>
+          <button 
+            onClick={onClose} 
+            aria-label="Close bulletin"
+            style={{
+              width: '28px', height: '28px', borderRadius: '8px',
+              background: 'var(--bg-modifier-hover)', border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 0.2s',
+              color: 'var(--text-secondary)',
+            }}
+          >
             <X size={12} />
           </button>
         </div>

@@ -10,13 +10,12 @@ Redesign the mobile layout of the Weather Map application by replacing scattered
 ---
 
 ## 🚀 Current State
-- **Git Branch:** `leader` (Up-to-date, working tree clean, pushed to origin).
+- **Git Branch:** `leader` (Up-to-date, commit `d2e3899`, pushed to origin).
 - **Dev Server:** Running locally on `http://localhost:3000` (Next.js dev).
 - **Active Documents:** 
+  - [src/components/AiChat.jsx](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/components/AiChat.jsx)
   - [src/components/WeatherMap.jsx](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/components/WeatherMap.jsx)
   - [src/components/MapLayerSheet.jsx](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/components/MapLayerSheet.jsx)
-  - [src/components/FloatingMapControls.jsx](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/components/FloatingMapControls.jsx)
-  - [src/components/RadarControls.jsx](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/components/RadarControls.jsx)
   - [src/index.css](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/index.css)
 
 ---
@@ -45,6 +44,12 @@ Redesign the mobile layout of the Weather Map application by replacing scattered
 - **[TyphoonLayer.jsx](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/components/TyphoonLayer.jsx):** Renders storm tracks, projected forecast markers, warning alerts, and deep-dive PAGASA bulletin boards.
 - **Tornado Icon Toggle:** Retained the standard Lucide **`Tornado`** icon to toggle the Typhoons overlay in mobile/desktop panels, keeping consistent system-wide library usage.
 
+### 6. AI Chat & Tone Refactoring ("Cloudly")
+- **Friendly Persona ("Cloudly")**: Refactored the AI assistant name to "Cloudly" and injected warm, emoji-rich personality guidelines and empathetic weather-appropriate safety tips into the Gemini prompt system context in [AiChat.jsx](file:///c:/Users/ADMIN/Desktop/Folder1/Weather-Map/src/components/AiChat.jsx).
+- **Polite Refusals**: Instructed the assistant to reject off-topic questions (math, coding, etc.) warmly and playfully, redirecting the conversation back to weather, forecasts, or clothing recommendations.
+- **Greeting & UI Helper Updates**: Upgraded the empty state UI helper text and seeded the conversation history welcome response to introduce Cloudly.
+- **High-Contrast Clear Chat Button**: Replaced the translucent pink clear chat button with a solid high-contrast pill button featuring a premium red (`#c53030`) background, pure white text (`#ffffff`), and a red drop-shadow to guarantee legibility on the warm beige layout.
+
 ---
 
 ## 🎨 Key Decisions & Preferences
@@ -52,3 +57,4 @@ Redesign the mobile layout of the Weather Map application by replacing scattered
 - **Light Mode for Weather Overlays:** All weather overlays (Temperature, Wind, Rain Radar) force the base map into Light Mode to ensure consistent readability.
 - **Cubic-Bezier Indicator Swapping:** Sliding tab indicators use elastic curves (`cubic-bezier(0.34, 1.56, 0.64, 1)`) for premium bounce feedback.
 - **No Hardcoded Hexes:** Main components reference CSS variables (`var(--accent-primary)`, `var(--border)`, etc.) to align colors seamlessly with the khaki-toned design system.
+- **Critical Action Buttons Visibility:** Contrast of action buttons (like "Clear chat") on warm/beige containers is prioritized with solid primary background fill (e.g. solid red with white text) instead of thin translucent colors, meeting WCAG AAA standards.

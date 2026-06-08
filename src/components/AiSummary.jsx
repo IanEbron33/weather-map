@@ -26,9 +26,7 @@ function SectionIcon({ type }) {
   return null;
 }
 
-const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
-const GEMINI_STREAM_URL = (key) =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${key}`;
+// GEMINI_MODEL and GEMINI_STREAM_URL have been moved to server-side route handler /api/chat
 
 // Marker keys that map directly to section keys
 const MARKER_KEYS = ['weather', 'temperature', 'wind', 'rain', 'air_quality', 'uv'];
@@ -148,9 +146,6 @@ export default function AiSummary({ weatherData, aqiData, currentLocation, pagas
     setSections({});
 
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      if (!apiKey) throw new Error('Missing NEXT_PUBLIC_GEMINI_API_KEY in .env');
-
       const temp     = Math.round(weatherData?.current?.temperature_2m ?? 0);
       const apparent = Math.round(weatherData?.current?.apparent_temperature ?? temp);
       const humidity = weatherData?.current?.relative_humidity_2m ?? 'N/A';
@@ -171,7 +166,7 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
 [air_quality] ...
 [uv] ...`;
 
-      const res = await fetch(GEMINI_STREAM_URL(apiKey), {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
@@ -180,7 +175,7 @@ Output exactly 6 lines using these markers. Each line: one friendly sentence wit
 
       if (!res.ok) {
         const e = await res.json().catch(() => ({}));
-        throw new Error(e?.error?.message || `HTTP ${res.status}`);
+        throw new Error(e?.error || e?.message || `HTTP ${res.status}`);
       }
 
       const reader = res.body.getReader();

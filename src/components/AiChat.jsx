@@ -2,9 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Trash2 } from 'lucide-react';
 import CloudlyMark from './CloudlyMark';
 
-const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
-const GEMINI_STREAM_URL = (key) =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${key}`;
+// GEMINI_MODEL and GEMINI_STREAM_URL have been moved to server-side route handler /api/chat
 
 // Typewriter speed (ms per character). Lower = faster.
 const TYPEWRITER_BASE_MS = 18;
@@ -63,8 +61,8 @@ STRICT RULES — you must follow these without exception:
 4. Reply in plain text only (no markdown formatting, bold text, or bullet points in the message itself), 2-4 sentences max for weather answers.`;
 }
 
-async function streamGemini(apiKey, contents, onChunk, signal) {
-  const res = await fetch(GEMINI_STREAM_URL(apiKey), {
+async function streamGemini(contents, onChunk, signal) {
+  const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents }),
@@ -73,7 +71,7 @@ async function streamGemini(apiKey, contents, onChunk, signal) {
 
   if (!res.ok) {
     const e = await res.json().catch(() => ({}));
-    throw new Error(e?.error?.message || `HTTP ${res.status}`);
+    throw new Error(e?.error || e?.message || `HTTP ${res.status}`);
   }
 
   const reader = res.body.getReader();
@@ -228,9 +226,6 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
     abortRef.current = new AbortController();
 
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      if (!apiKey) throw new Error('Missing API key');
-
       const systemCtx = buildSystemContext(weatherData, aqiData, city, pagasaData);
       const contents = [
         { role: 'user', parts: [{ text: systemCtx }] },
@@ -245,7 +240,6 @@ export default function AiChat({ weatherData, aqiData, currentLocation, pagasaDa
       startTypewriter();
 
       await streamGemini(
-        apiKey,
         contents,
         (delta) => {
           // Accumulate into the invisible buffer — typewriter drains it

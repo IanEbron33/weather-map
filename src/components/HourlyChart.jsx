@@ -67,7 +67,7 @@ export default function HourlyChart({ weatherData, tempUnit }) {
       const val = minT + (rangeT / 4) * i;
       const y = getY(val);
       ctx.fillStyle = 'rgba(111, 85, 54, 0.55)';
-      ctx.font = 'bold 10px Quicksand, sans-serif';
+      ctx.font = 'bold 10px var(--font-quicksand), sans-serif';
       ctx.fillText(`${Math.round(val)}°`, padding.left - 10, y + 4);
       ctx.strokeStyle = 'rgba(185, 151, 91, 0.22)';
       ctx.lineWidth = 1;
@@ -117,7 +117,7 @@ export default function HourlyChart({ weatherData, tempUnit }) {
     }
 
     ctx.fillStyle = 'rgba(63, 42, 24, 0.78)';
-    ctx.font = 'bold 10px Quicksand, sans-serif';
+    ctx.font = 'bold 10px var(--font-quicksand), sans-serif';
     ctx.textAlign = 'center';
     for (let i = 0; i < chartData.times.length; i += 3) {
       const d = new Date(chartData.times[i]);

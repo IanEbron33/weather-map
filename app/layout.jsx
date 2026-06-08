@@ -1,4 +1,12 @@
+import { Quicksand } from 'next/font/google';
 import '../src/index.css';
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-quicksand',
+});
 
 export const viewport = {
   themeColor: '#f7f5f0',
@@ -45,11 +53,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${quicksand.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

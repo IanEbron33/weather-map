@@ -99,7 +99,7 @@ body,
 }
 
 body {
-  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-quicksand), -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
@@ -583,7 +583,7 @@ main.temp-layer-active .base-map-tiles {
   border: 1px solid var(--border) !important;
   border-radius: 16px !important;
   box-shadow: var(--shadow-md) !important;
-  font-family: 'Quicksand', sans-serif !important;
+  font-family: var(--font-quicksand), sans-serif !important;
 }
 
 .leaflet-popup-tip {

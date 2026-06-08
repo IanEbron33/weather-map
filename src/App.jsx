@@ -157,7 +157,29 @@ export default function App() {
         }
         handleFetchWeather(urlLat, urlLon);
       } else {
-        geoLocate();
+        const defaultLat = 14.5995;
+        const defaultLon = 120.9842;
+        
+        const loadDefaultLocation = () => {
+          if (mapRef.current) {
+            mapRef.current.setView([defaultLat, defaultLon], 10, { animate: true });
+          }
+          handleFetchWeather(defaultLat, defaultLon);
+        };
+
+        if (navigator.permissions && navigator.permissions.query) {
+          navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+            if (permissionStatus.state === 'granted') {
+              geoLocate();
+            } else {
+              loadDefaultLocation();
+            }
+          }).catch(() => {
+            loadDefaultLocation();
+          });
+        } else {
+          loadDefaultLocation();
+        }
       }
     }
 

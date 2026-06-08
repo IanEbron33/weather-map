@@ -456,7 +456,7 @@ function WeatherMarker({ location, weatherData, tempUnit, windUnit }) {
         <div
           className="relative overflow-hidden rounded-xl shadow-2xl"
           style={{
-            fontFamily: 'Quicksand, sans-serif',
+            fontFamily: 'var(--font-quicksand), sans-serif',
             background: bgImage ? `url(${bgImage}) center/cover no-repeat` : 'var(--bg-card)',
             width: '230px',
             padding: '16px',

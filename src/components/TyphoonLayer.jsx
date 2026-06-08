@@ -273,7 +273,7 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
                   }}
                 >
                   <Popup>
-                    <div style={{ fontFamily: 'Quicksand,sans-serif', fontSize: '12px' }}>
+                    <div style={{ fontFamily: 'var(--font-quicksand), sans-serif', fontSize: '12px' }}>
                       <div style={{ fontWeight: 700 }}>{formatForecastTime(pt.time)}</div>
                       <div style={{ color: '#94a3b8' }}>
                         {pt.isCurrent ? 'Current Position' : (pt.isForecast ? 'Forecast Position' : 'Historical Position')}
@@ -291,7 +291,7 @@ const TyphoonLayer = React.memo(function TyphoonLayer({
               zIndexOffset={1000}
             >
               <Popup minWidth={isMobile() ? 220 : 280} maxWidth={isMobile() ? 260 : 340}>
-                <div style={{ fontFamily: 'Quicksand,sans-serif', margin: '-4px -4px 0', padding: 0 }}>
+                <div style={{ fontFamily: 'var(--font-quicksand), sans-serif', margin: '-4px -4px 0', padding: 0 }}>
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: isMobile() ? '6px' : '10px', marginBottom: isMobile() ? '6px' : '10px' }}>
                     <img

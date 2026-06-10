@@ -715,6 +715,11 @@ html.light-mode .leaflet-control-attribution {
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0;
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(10px);
+  animation: cloudlyTextReveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.45s;
 }
 
 .cloudly-splash-subtitle {
@@ -724,6 +729,11 @@ html.light-mode .leaflet-control-attribution {
   font-size: clamp(14px, 2.1vw, 14px);
   font-weight: 700;
   line-height: 1.25;
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(10px);
+  animation: cloudlyTextReveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.72s;
 }
 
 .cloudly-splash-loader {
@@ -733,6 +743,9 @@ html.light-mode .leaflet-control-attribution {
   overflow: hidden;
   border-radius: 999px;
   background: rgba(143, 128, 88, 0.16);
+  opacity: 0;
+  animation: cloudlyFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.95s;
 }
 
 .cloudly-splash-loader span {
@@ -753,6 +766,20 @@ html.light-mode .leaflet-control-attribution {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cloudlyTextReveal {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes cloudlyFadeIn {
+  to {
+    opacity: 1;
   }
 }
 
@@ -780,8 +807,14 @@ html.light-mode .leaflet-control-attribution {
 @media (prefers-reduced-motion: reduce) {
 
   .cloudly-splash-shell,
+  .cloudly-splash-title,
+  .cloudly-splash-subtitle,
+  .cloudly-splash-loader,
   .cloudly-splash-loader span {
     animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
   }
 }
 
